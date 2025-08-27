@@ -39,7 +39,16 @@ smart\_medical/
 sudo apt update
 sudo apt install -y build-essential gdb git vim cmake qtcreator qtbase5-dev
 ````
+🗄️ 数据库支持 (Qt SQL)
 
+本项目使用 Qt 自带的 SQL 模块（SQLite）。在 Ubuntu 上执行以下命令安装：
+
+```bash
+sudo apt update
+sudo apt install -y libqt5sql5 libqt5sql5-sqlite   # Qt5
+# 或 Qt6
+sudo apt install -y libqt6sql6 libqt6sql6-sqlite
+```
 ---
 
 ## 🛠 常用工具介绍
