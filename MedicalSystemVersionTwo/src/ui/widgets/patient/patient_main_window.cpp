@@ -29,8 +29,23 @@ const char* cardIcon = R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" hei
 const char* hospitalIcon = R"(<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M8 13h1v4H8zM12 13h1v4h-1zM16 13h1v4h-1z"/></svg>)";
 
 
+// 这是 patient_main_window.cpp 中的构造函数 (初始化列表写法)
 PatientMainWindow::PatientMainWindow(const QString &userName, QWidget *parent)
-        : QMainWindow(parent)
+        : QMainWindow(parent),
+          dateTimeLabel(nullptr),
+          timer(nullptr),
+          userNameLabel(nullptr),
+          userMenu(nullptr),
+          mainStackedWidget(nullptr),
+          dashboardPage(nullptr),
+          profilePage(nullptr) ,
+          appointmentPage(nullptr),
+          doctorInfoPage(nullptr),
+          communicationPage(nullptr),
+          healthAssessmentPage(nullptr),
+          medicineSearchPage(nullptr),
+          paymentPage(nullptr)
+
 {
     initUI();
     initStyleSheets();
@@ -39,9 +54,8 @@ PatientMainWindow::PatientMainWindow(const QString &userName, QWidget *parent)
     userNameLabel = findChild<QLabel*>("userNameLabel");
     if (userNameLabel) {
         userNameLabel->setText(userName);
-        // 允许 QLabel 接收鼠标事件
         userNameLabel->setMouseTracking(true);
-        userNameLabel->installEventFilter(this); // 安装事件过滤器来捕获鼠标进入/离开事件
+        userNameLabel->installEventFilter(this);
     }
 
     dateTimeLabel = findChild<QLabel*>("dateTimeLabel");
@@ -55,6 +69,7 @@ PatientMainWindow::PatientMainWindow(const QString &userName, QWidget *parent)
 
     // 创建用户菜单
     userMenu = new QMenu(this);
+    userMenu->addAction("个人中心");
     userMenu->addSeparator();
     QAction *logoutAction = userMenu->addAction("退出账号");
     connect(logoutAction, &QAction::triggered, this, &PatientMainWindow::onLogoutTriggered);
@@ -85,20 +100,21 @@ bool PatientMainWindow::eventFilter(QObject *obj, QEvent *event) {
 }
 
 void PatientMainWindow::initUI() {
-    QWidget *centralWidget = new QWidget(this);
-    centralWidget->setObjectName("centralDashboardWidget");
+    mainStackedWidget = new QStackedWidget();
+    setCentralWidget(mainStackedWidget); // 将 stacked widget 设置为中心
 
-    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
-    mainLayout->setContentsMargins(40, 30, 40, 30);
-    mainLayout->setSpacing(25);
+    // 创建仪表盘页面
+    dashboardPage = new QWidget();
+    QVBoxLayout *dashboardLayout = new QVBoxLayout(dashboardPage);
+    dashboardLayout->setContentsMargins(40, 30, 40, 30);
+    dashboardLayout->setSpacing(25);
+    dashboardLayout->addWidget(createHeaderWidget("Jane"));
+    dashboardLayout->addWidget(createAdvicePanel());
+    dashboardLayout->addWidget(createGridWidget()); // createGridWidget 现在需要连接信号
+    dashboardLayout->addStretch();
+    dashboardLayout->addWidget(createFooterWidget());
 
-    mainLayout->addWidget(createHeaderWidget("")); // 初始用户名设为空，由构造函数填充
-    mainLayout->addWidget(createAdvicePanel());
-    mainLayout->addWidget(createGridWidget());
-    mainLayout->addStretch();
-    mainLayout->addWidget(createFooterWidget());
-
-    setCentralWidget(centralWidget);
+    mainStackedWidget->addWidget(dashboardPage); // 添加为第一页
 }
 
 QWidget* PatientMainWindow::createHeaderWidget(const QString &userName) {
@@ -166,7 +182,48 @@ QWidget* PatientMainWindow::createGridWidget() {
     gridLayout->addWidget(createDashboardButton(pillsIcon, "药品搜索", "查询药品详情和使用方法", "btnMedSearch"), 2, 1);
     gridLayout->addWidget(createDashboardButton(cardIcon, "线上支付", "缴纳医疗费用", "btnOnlinePayment"), 2, 2);
     gridLayout->addWidget(createDashboardButton(hospitalIcon, "住院信息", "查看住院详细情况", "btnHospitalization"), 2, 3);
+    QPushButton *personalInfoButton = qobject_cast<QPushButton*>(createDashboardButton(userIcon, "个人信息", "查看和编辑个人资料", "btnPersonalInfo"));
+    if (personalInfoButton) {
+        connect(personalInfoButton, &QPushButton::clicked, this, &PatientMainWindow::showProfileWidget);
+    }
+    gridLayout->addWidget(personalInfoButton, 0, 0);
 
+    QPushButton *bookingButton = qobject_cast<QPushButton*>(createDashboardButton(clipboardIcon, "挂号服务", "预约和在线挂号", "btnAppointments"));
+    if (bookingButton) {
+        connect(bookingButton, &QPushButton::clicked, this, &PatientMainWindow::showAppointmentBookingWidget);
+    }
+    gridLayout->addWidget(bookingButton, 0, 1);
+
+    // 医生信息按钮 - 添加这个部分
+    QPushButton *doctorInfoButton = qobject_cast<QPushButton*>(createDashboardButton(userMdIcon, "医生信息", "查看医生资料和专业", "btnDoctorInfo"));
+    if (doctorInfoButton) {
+        connect(doctorInfoButton, &QPushButton::clicked, this, &PatientMainWindow::showDoctorInfoWidget);
+    }
+    gridLayout->addWidget(doctorInfoButton, 0, 2);
+
+    QPushButton *communicationButton = qobject_cast<QPushButton*>(createDashboardButton(messageIcon, "医患沟通", "与医生在线交流", "btnCommunication"));
+    if (communicationButton) {
+        connect(communicationButton, &QPushButton::clicked, this, &PatientMainWindow::showCommunicationWidget);
+    }
+    gridLayout->addWidget(communicationButton, 1, 3);
+
+    QPushButton *healthAssessmentButton = qobject_cast<QPushButton*>(createDashboardButton(heartIcon, "健康评估", "进行健康状况评估", "btnHealthAssessment"));
+    if (healthAssessmentButton) {
+        connect(healthAssessmentButton, &QPushButton::clicked, this, &PatientMainWindow::showHealthAssessmentWidget);
+    }
+    gridLayout->addWidget(healthAssessmentButton, 2, 0);
+
+    QPushButton *medicineSearchButton = qobject_cast<QPushButton*>(createDashboardButton(pillsIcon, "药品搜索", "查询药品详情和使用方法", "btnMedSearch"));
+    if (medicineSearchButton) {
+        connect(medicineSearchButton, &QPushButton::clicked, this, &PatientMainWindow::showMedicineSearchWidget);
+    }
+    gridLayout->addWidget(medicineSearchButton, 2, 1);
+
+    QPushButton *paymentButton = qobject_cast<QPushButton*>(createDashboardButton(cardIcon, "线上支付", "缴纳医疗费用", "btnOnlinePayment"));
+    if (paymentButton) {
+        connect(paymentButton, &QPushButton::clicked, this, &PatientMainWindow::showOnlinePaymentWidget);
+    }
+    gridLayout->addWidget(paymentButton, 2, 2);
     return gridContainer;
 }
 
@@ -226,6 +283,110 @@ void PatientMainWindow::onLogoutTriggered() {
     userMenu->hide();
     emit logoutRequested();
     close();
+}
+
+void PatientMainWindow::showProfileWidget()
+{
+    // 检查个人信息页面是否已经被创建
+    if (!profilePage) {
+        // 如果是第一次点击，则创建新页面
+        profilePage = new ProfileWidget();
+
+        // 连接返回信号，当在个人信息页点击“返回”时，切换回仪表盘
+        connect(profilePage, &ProfileWidget::backRequested, this, [=]() {
+            mainStackedWidget->setCurrentWidget(dashboardPage);
+        });
+
+        // 关键修正：必须先把新创建的页面添加到堆叠容器 (QStackedWidget) 中
+        mainStackedWidget->addWidget(profilePage);
+    }
+
+    // 在确保页面已经被添加后，再安全地将它设置为当前要显示的页面
+    mainStackedWidget->setCurrentWidget(profilePage);
+}
+
+void PatientMainWindow::showAppointmentBookingWidget()
+{
+    if (!appointmentPage) { // 如果页面还未创建
+        appointmentPage = new AppointmentBookingWidget();
+        // 连接返回信号，以便从挂号页返回仪表盘
+        connect(appointmentPage, &AppointmentBookingWidget::backRequested, this, [=]() {
+            mainStackedWidget->setCurrentWidget(dashboardPage);
+        });
+        mainStackedWidget->addWidget(appointmentPage);
+    }
+    mainStackedWidget->setCurrentWidget(appointmentPage); // 切换到挂号页
+}
+
+void PatientMainWindow::showDoctorInfoWidget()
+{
+    // 检查医生信息页面是否已经被创建
+    if (!doctorInfoPage) {
+        // 如果是第一次点击，则创建新页面
+        doctorInfoPage = new DoctorInfoWidget();
+
+        // 连接返回信号，当在医生信息页点击"返回"时，切换回仪表盘
+        connect(doctorInfoPage, &DoctorInfoWidget::backRequested, this, [=]() {
+            mainStackedWidget->setCurrentWidget(dashboardPage);
+        });
+
+        // 关键修正：必须先把新创建的页面添加到堆栈容器 (QStackedWidget) 中
+        mainStackedWidget->addWidget(doctorInfoPage);
+    }
+
+    // 在确保页面已经被添加后，再安全地将它设置为当前要显示的页面
+    mainStackedWidget->setCurrentWidget(doctorInfoPage);
+}
+
+void PatientMainWindow::showCommunicationWidget()
+{
+    if (!communicationPage) {
+        communicationPage = new CommunicationWidget();
+        connect(communicationPage, &CommunicationWidget::backRequested, this, [=]() {
+            mainStackedWidget->setCurrentWidget(dashboardPage);
+        });
+        mainStackedWidget->addWidget(communicationPage);
+    }
+    mainStackedWidget->setCurrentWidget(communicationPage);
+}
+
+void PatientMainWindow::showHealthAssessmentWidget()
+{
+    if (!healthAssessmentPage) {
+        healthAssessmentPage = new HealthAssessmentWidget();
+        connect(healthAssessmentPage, &HealthAssessmentWidget::backRequested, this, [=]() {
+            mainStackedWidget->setCurrentWidget(dashboardPage);
+        });
+        mainStackedWidget->addWidget(healthAssessmentPage);
+    }
+    mainStackedWidget->setCurrentWidget(healthAssessmentPage);
+}
+
+// 在文件末尾添加槽函数实现：
+void PatientMainWindow::showMedicineSearchWidget()
+{
+    if (!medicineSearchPage) {
+        medicineSearchPage = new MedicineSearchWidget();
+        connect(medicineSearchPage, &MedicineSearchWidget::backRequested, this, [=]() {
+            mainStackedWidget->setCurrentWidget(dashboardPage);
+        });
+        mainStackedWidget->addWidget(medicineSearchPage);
+    }
+    mainStackedWidget->setCurrentWidget(medicineSearchPage);
+}
+
+
+void PatientMainWindow::showOnlinePaymentWidget()
+{
+    if (!paymentPage) { // 如果页面还未创建
+        paymentPage = new OnlinePaymentWidget();
+        // 连接返回信号，以便从支付页返回仪表盘
+        connect(paymentPage, &OnlinePaymentWidget::backRequested, this, [=]() {
+            mainStackedWidget->setCurrentWidget(dashboardPage);
+        });
+        mainStackedWidget->addWidget(paymentPage);
+    }
+    mainStackedWidget->setCurrentWidget(paymentPage); // 切换到支付页
 }
 
 void PatientMainWindow::initStyleSheets() {
