@@ -1,0 +1,11 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/">
+        <file alias="main.qml">main.qml</file>
+        <file alias="qmldir">qmldir</file>
+        <file alias="Constants.qml">style/Constants.qml</file>
+        <file alias="CustomTextInput.qml">components/CustomTextInput.qml</file>
+        <file alias="LoginForm.qml">pages/LoginForm.qml</file>
+        <file alias="RegisterForm.qml">pages/RegisterForm.qml</file>
+        <file alias="AuthPage.qml">pages/AuthPage.qml</file>
+    </qresource>
+</RCC>

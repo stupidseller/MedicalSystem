@@ -1,0 +1,5 @@
+C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/CMakeFiles/SmartHealthLogin.dir
+C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/CMakeFiles/edit_cache.dir
+C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/CMakeFiles/rebuild_cache.dir
+C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/CMakeFiles/SmartHealthLogin_autogen_timestamp_deps.dir
+C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/CMakeFiles/SmartHealthLogin_autogen.dir
