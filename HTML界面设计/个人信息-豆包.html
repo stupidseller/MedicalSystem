@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人信息 - 智慧医疗管理系统</title>
+    <!-- 引入Tailwind CSS实现淡色简约风格 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 自定义淡色主题：主色调浅蓝，背景浅灰，文字深灰 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#e0f2fe', // 浅蓝主色
+                        secondary: '#f3f4f6', // 浅灰背景
+                        text: '#374151', // 深灰文字
+                        border: '#d1d5db', // 浅灰边框
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .info-card {
+                @apply bg-white rounded-lg shadow-sm border border-border p-6;
+            }
+            .form-label {
+                @apply block text-sm font-medium text-text mb-1;
+            }
+            .form-input {
+                @apply w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400;
+            }
+            .btn {
+                @apply px-4 py-2 rounded-md font-medium transition-colors;
+            }
+            .btn-primary {
+                @apply bg-blue-500 text-white hover:bg-blue-600;
+            }
+            .btn-secondary {
+                @apply bg-secondary text-text hover:bg-gray-200;
+            }
+            .btn-danger {
+                @apply bg-red-100 text-red-600 hover:bg-red-200;
+            }
+        }
+    </style>
+</head>
+<body class="bg-secondary min-h-screen text-text">
+    <!-- 页面容器 -->
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- 顶部标题区 -->
+        <div class="mb-8 text-center">
+            <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-text mb-2">个人信息管理</h1>
+            <p class="text-sm text-gray-500">查看并编辑您的个人基础信息，确保信息准确无误</p>
+        </div>
+
+        <!-- 个人信息卡片 -->
+        <div class="info-card mb-8">
+            <!-- 头像与基础信息区 -->
+            <div class="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6">
+                <!-- 头像 -->
+                <div class="relative">
+                    <img src="https://picsum.photos/120/120" alt="用户头像" class="w-24 h-24 rounded-full object-cover border-2 border-primary">
+                    <button class="absolute bottom-0 right-0 bg-white rounded-full p-1 border border-border hover:bg-gray-100 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- 信息编辑表单 -->
+                <form id="infoForm" class="w-full md:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- 姓名（不可编辑） -->
+                    <div>
+                        <label class="form-label">姓名</label>
+                        <input type="text" value="Jane" class="form-input bg-gray-50 cursor-not-allowed" readonly>
+                    </div>
+
+                    <!-- 性别 -->
+                    <div>
+                        <label class="form-label">性别</label>
+                        <select class="form-input">
+                            <option value="female" selected>女</option>
+                            <option value="male">男</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+
+                    <!-- 年龄 -->
+                    <div>
+                        <label class="form-label">年龄</label>
+                        <input type="number" value="32" min="0" max="150" class="form-input">
+                    </div>
+
+                    <!-- 身份证号（格式校验） -->
+                    <div>
+                        <label class="form-label">身份证号</label>
+                        <input type="text" value="110101199201011234" maxlength="18" class="form-input" id="idCard">
+                        <p class="text-xs text-red-500 hidden" id="idCardTip">请输入18位有效身份证号</p>
+                    </div>
+
+                    <!-- 手机号（格式校验） -->
+                    <div>
+                        <label class="form-label">手机号</label>
+                        <input type="tel" value="13800138000" maxlength="11" class="form-input" id="phone">
+                        <p class="text-xs text-red-500 hidden" id="phoneTip">请输入11位有效手机号</p>
+                    </div>
+
+                    <!-- 邮箱（格式校验） -->
+                    <div>
+                        <label class="form-label">邮箱</label>
+                        <input type="email" value="jane@example.com" class="form-input" id="email">
+                        <p class="text-xs text-red-500 hidden" id="emailTip">请输入有效邮箱地址（如xxx@xx.com）</p>
+                    </div>
+
+                    <!-- 家庭住址（跨列） -->
+                    <div class="md:col-span-2">
+                        <label class="form-label">家庭住址</label>
+                        <textarea class="form-input h-20 resize-none" placeholder="请输入详细家庭住址">北京市朝阳区XX街道XX小区1号楼1单元101室</textarea>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 操作按钮区 -->
+            <div class="flex flex-wrap justify-end gap-3 pt-4 border-t border-border">
+                <button class="btn btn-secondary" id="backBtn">返回主界面</button>
+                <button class="btn btn-danger" id="resetPwdBtn">重置密码</button>
+                <button class="btn btn-primary" id="saveBtn">保存修改</button>
+            </div>
+        </div>
+
+        <!-- 密码重置模态框（默认隐藏） -->
+        <div id="resetPwdModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg">重置密码</h3>
+                    <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <form id="resetPwdForm" class="space-y-4">
+                    <div>
+                        <label class="form-label">原密码</label>
+                        <input type="password" placeholder="请输入原密码" class="form-input">
+                    </div>
+                    <div>
+                        <label class="form-label">新密码</label>
+                        <input type="password" placeholder="8-16位，含字母和数字" class="form-input" id="newPwd">
+                    </div>
+                    <div>
+                        <label class="form-label">确认新密码</label>
+                        <input type="password" placeholder="再次输入新密码" class="form-input" id="confirmPwd">
+                        <p class="text-xs text-red-500 hidden" id="pwdTip">两次密码输入不一致</p>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" class="btn btn-secondary" id="cancelReset">取消</button>
+                        <button type="submit" class="btn btn-primary">确认重置</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 简单交互逻辑：表单校验、模态框控制 -->
+    <script>
+        // 元素获取
+        const idCard = document.getElementById('idCard');
+        const idCardTip = document.getElementById('idCardTip');
+        const phone = document.getElementById('phone');
+        const phoneTip = document.getElementById('phoneTip');
+        const email = document.getElementById('email');
+        const emailTip = document.getElementById('emailTip');
+        const saveBtn = document.getElementById('saveBtn');
+        const backBtn = document.getElementById('backBtn');
+        const resetPwdBtn = document.getElementById('resetPwdBtn');
+        const resetPwdModal = document.getElementById('resetPwdModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelReset = document.getElementById('cancelReset');
+        const newPwd = document.getElementById('newPwd');
+        const confirmPwd = document.getElementById('confirmPwd');
+        const pwdTip = document.getElementById('pwdTip');
+        const resetPwdForm = document.getElementById('resetPwdForm');
+
+        // 身份证号格式校验（简单校验18位）
+        idCard.addEventListener('blur', () => {
+            const reg = /^\d{17}[\dXx]$/;
+            if (!reg.test(idCard.value) && idCard.value) {
+                idCardTip.classList.remove('hidden');
+            } else {
+                idCardTip.classList.add('hidden');
+            }
+        });
+
+        // 手机号格式校验（11位数字）
+        phone.addEventListener('blur', () => {
+            const reg = /^1[3-9]\d{9}$/;
+            if (!reg.test(phone.value) && phone.value) {
+                phoneTip.classList.remove('hidden');
+            } else {
+                phoneTip.classList.add('hidden');
+            }
+        });
+
+        // 邮箱格式校验
+        email.addEventListener('blur', () => {
+            const reg = /^[\w.-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.]+$/;
+            if (!reg.test(email.value) && email.value) {
+                emailTip.classList.remove('hidden');
+            } else {
+                emailTip.classList.add('hidden');
+            }
+        });
+
+        // 保存修改按钮：校验通过后提示
+        saveBtn.addEventListener('click', () => {
+            let isValid = true;
+            // 触发所有校验
+            idCard.dispatchEvent(new Event('blur'));
+            phone.dispatchEvent(new Event('blur'));
+            email.dispatchEvent(new Event('blur'));
+            
+            // 检查是否有错误提示显示
+            if (!idCardTip.classList.contains('hidden') || 
+                !phoneTip.classList.contains('hidden') || 
+                !emailTip.classList.contains('hidden')) {
+                isValid = false;
+            }
+
+            if (isValid) {
+                alert('个人信息保存成功！');
+            }
+        });
+
+        // 返回主界面：模拟跳转
+        backBtn.addEventListener('click', () => {
+            if (confirm('确定要返回主界面吗？未保存的修改将丢失')) {
+                window.location.href = 'index.html'; // 假设主界面为index.html
+            }
+        });
+
+        // 重置密码模态框控制
+        resetPwdBtn.addEventListener('click', () => {
+            resetPwdModal.classList.remove('hidden');
+        });
+
+        [closeModal, cancelReset].forEach(btn => {
+            btn.addEventListener('click', () => {
+                resetPwdModal.classList.add('hidden');
+                resetPwdForm.reset();
+                pwdTip.classList.add('hidden');
+            });
+        });
+
+        // 密码一致性校验
+        confirmPwd.addEventListener('blur', () => {
+            if (newPwd.value !== confirmPwd.value && confirmPwd.value) {
+                pwdTip.classList.remove('hidden');
+            } else {
+                pwdTip.classList.add('hidden');
+            }
+        });
+
+        // 密码重置表单提交
+        resetPwdForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (newPwd.value !== confirmPwd.value) {
+                pwdTip.classList.remove('hidden');
+                return;
+            }
+            alert('密码重置成功！请重新登录');
+            resetPwdModal.classList.add('hidden');
+            resetPwdForm.reset();
+        });
+    </script>
+</body>
+</html>

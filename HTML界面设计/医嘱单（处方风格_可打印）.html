@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>医嘱单（处方风格·可打印）</title>
+  <style>
+    :root{
+      --ink:#111; --muted:#6b7280; --line:#cbd5e1; --sheet:#fff; --accent:#111827;
+    }
+    html,body{height:100%}
+    body{margin:0;background:#eceff3;font:14px/1.6 "Source Han Sans SC","PingFang SC","Microsoft YaHei",system-ui}
+
+    /* 纸张样式（A4） */
+    .wrap{display:grid;place-items:center;padding:18px}
+    .paper{width:794px; /* A4 96DPI: 794x1123 */
+           min-height:1123px; background:var(--sheet); color:var(--ink);
+           box-shadow:0 6px 24px rgba(0,0,0,.12); border:1px solid #e5e7eb; position:relative}
+    .paper::after{content:""; position:absolute; inset:14px; border:1px dashed #e5e7eb; pointer-events:none}
+    .pad{padding:24px 28px}
+
+    /* 页眉 */
+    .hosp{display:flex;justify-content:space-between;align-items:center}
+    .hosp .name{font:700 22px/1.2 "STSong","Songti SC",serif; letter-spacing:2px}
+    .hosp .meta{color:var(--muted);font-size:12px}
+
+    .title{margin:8px 0 12px; text-align:center; font:700 20px/1.2 "STSong","Songti SC",serif; letter-spacing:6px}
+
+    /* 基本信息 */
+    .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 12px}
+    .field{display:flex;gap:6px;align-items:center}
+    .label{width:72px;color:#374151}
+    .line{flex:1; border-bottom:1px solid var(--line); min-height:22px; padding:0 6px}
+    input,select{width:100%;border:0;outline:0;background:transparent;font:14px/1.4 inherit}
+
+    /* 分隔标题 */
+    .section{margin:14px 0 8px; font-weight:800; letter-spacing:2px}
+    .hr{height:1px;background:linear-gradient(90deg,transparent,#d1d5db,transparent); margin:6px 0 8px}
+
+    /* 处方表 */
+    table{width:100%;border-collapse:collapse}
+    thead th{font-weight:700;text-align:left;border-bottom:2px solid #1f2937;padding:6px 4px}
+    tbody td{border-bottom:1px solid #e5e7eb;padding:6px 4px;vertical-align:top}
+    .t-small td{padding:4px}
+    .rx-ops{display:flex;gap:6px}
+    .btn{border:1px solid #d1d5db;background:#fafafa;border-radius:6px;padding:4px 8px;cursor:pointer}
+
+    /* 计划/医嘱文本块 */
+    .bullets{counter-reset:item;display:grid;gap:6px}
+    .bullet{display:flex;gap:8px}
+    .bullet::before{counter-increment:item;content:counter(item)"."; width:20px; text-align:right}
+    .textarea{border:1px solid #e5e7eb;border-radius:6px;padding:8px;min-height:64px}
+
+    /* 签章区 */
+    .sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+    .sign .box{border:1px dashed #cbd5e1; border-radius:8px; padding:10px; height:86px}
+    .stamp{position:absolute; right:120px; bottom:180px; width:140px; height:140px; border:3px solid #c81e1e; border-radius:50%; opacity:.18}
+    .qr{position:absolute; right:24px; bottom:24px; width:84px; height:84px; border:1px solid #e5e7eb}
+
+    /* 打印优化 */
+    @media print{
+      body{background:#fff}
+      .paper{box-shadow:none; border:0}
+      .paper::after{display:none}
+      .btn, .rx-ops{display:none !important}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="paper">
+      <div class="pad">
+        <div class="hosp">
+          <div class="name">××市第一人民医院</div>
+          <div class="meta">门（急）诊 | 内科 | 表单编号：RX-001</div>
+        </div>
+        <div class="title">医 嘱 单 / 处 方 笺</div>
+
+        <!-- 基本信息行 -->
+        <div class="grid" style="margin-bottom:6px">
+          <div class="field"><div class="label">姓名</div><div class="line"><input value="张三"></div></div>
+          <div class="field"><div class="label">性别/年龄</div><div class="line"><input value="男/45"></div></div>
+          <div class="field"><div class="label">就诊号</div><div class="line"><input value="OP20250826001"></div></div>
+          <div class="field"><div class="label">科室</div><div class="line"><input value="心内科"></div></div>
+          <div class="field"><div class="label">诊断</div><div class="line"><input value="高血压 2 级"></div></div>
+          <div class="field"><div class="label">过敏史</div><div class="line"><input value="青霉素"></div></div>
+        </div>
+
+        <div class="section">一、处方</div>
+        <div class="hr"></div>
+        <table id="rx">
+          <thead><tr><th style="width:34%">药品名称（通用名）</th><th style="width:18%">规格/用量</th><th style="width:16%">给药途径</th><th style="width:16%">频次</th><th style="width:10%">天数</th><th>备注</th></tr></thead>
+          <tbody id="rxBody">
+            <tr>
+              <td contenteditable>阿司匹林肠溶片（Aspirin EC）</td>
+              <td contenteditable>100 mg</td>
+              <td contenteditable>PO 饭后</td>
+              <td contenteditable>qd</td>
+              <td contenteditable>28</td>
+              <td contenteditable>心血管保护，避免同用其他NSAIDs</td>
+            </tr>
+            <tr>
+              <td contenteditable>瑞舒伐他汀（Rosuvastatin）</td>
+              <td contenteditable>10 mg</td>
+              <td contenteditable>PO 晚间</td>
+              <td contenteditable>qn</td>
+              <td contenteditable>28</td>
+              <td contenteditable>监测肝酶，肌痛停药就诊</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="rx-ops" style="margin-top:8px">
+          <button class="btn" onclick="addRow()">＋ 增加行</button>
+          <button class="btn" onclick="delRow()">－ 删除末行</button>
+          <button class="btn" onclick="window.print()">🖨 打印</button>
+        </div>
+
+        <div class="section">二、诊疗计划</div>
+        <div class="hr"></div>
+        <div class="bullets" id="plan">
+          <div class="bullet"><div class="textarea" contenteditable>完善相关检查（心电图、心肌酶、血脂）。</div></div>
+          <div class="bullet"><div class="textarea" contenteditable>暂观察，注意休息，避免重体力劳动。</div></div>
+          <div class="bullet"><div class="textarea" contenteditable>健康指导：低盐饮食（≤5g/d），规律运动（每周≥150分钟中等强度）；保持情绪稳定。</div></div>
+          <div class="bullet"><div class="textarea" contenteditable>若胸痛再发或加重，立即就近急诊；出现黑便/呕血立刻停用阿司匹林并就诊。</div></div>
+        </div>
+        <div class="rx-ops" style="margin-top:8px">
+          <button class="btn" onclick="addBullet()">＋ 增加条目</button>
+          <button class="btn" onclick="delBullet()">－ 删除末条</button>
+        </div>
+
+        <div class="section">三、处置与复诊</div>
+        <div class="hr"></div>
+        <table class="t-small">
+          <tbody>
+            <tr><td style="width:120px;color:#374151">处置</td><td contenteditable>预约动态血压监测；必要时行动态心电图。</td></tr>
+            <tr><td style="color:#374151">复诊时间</td><td contenteditable>1 周后携带检测结果复诊；有不适可随诊。</td></tr>
+            <tr><td style="color:#374151">其他</td><td contenteditable>驾驶/高危作业请谨慎，遵医嘱。</td></tr>
+          </tbody>
+        </table>
+
+        <div class="sign">
+          <div class="box">开立医师签名：<br><br>日期：<span id="date"></span></div>
+          <div class="box">调配/核对/发药：<br><span style="color:#9ca3af">（药师签名）</span></div>
+          <div class="box">患者/监护人签名：<br><span style="color:#9ca3af">（确认知情）</span></div>
+        </div>
+      </div>
+      <div class="stamp"></div>
+      <div class="qr"><!-- 二维码占位 --></div>
+    </div>
+  </div>
+
+  <script>
+    function addRow(){
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td contenteditable>药品通用名</td><td contenteditable>规格/剂量</td><td contenteditable>途径</td><td contenteditable>频次</td><td contenteditable>天数</td><td contenteditable></td>';
+      document.getElementById('rxBody').appendChild(tr);
+    }
+    function delRow(){ const b=document.getElementById('rxBody'); if(b.rows.length>1) b.deleteRow(b.rows.length-1); }
+
+    function addBullet(){
+      const d=document.createElement('div'); d.className='bullet';
+      d.innerHTML='<div class="textarea" contenteditable>新增计划条目…</div>';
+      document.getElementById('plan').appendChild(d);
+    }
+    function delBullet(){ const p=document.getElementById('plan'); if(p.children.length>1) p.removeChild(p.lastElementChild); }
+
+    // 填入当天日期
+    (function(){const d=new Date(); const pad=n=>n.toString().padStart(2,'0'); document.getElementById('date').textContent=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;})();
+  </script>
+</body>
+</html>

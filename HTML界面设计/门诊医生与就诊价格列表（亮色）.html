@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>门诊医生与就诊价格列表（紧凑版）</title>
+  <style>
+    :root{
+      --bg:#f7f8fb; --panel:#ffffff; --panel-2:#f9fafb; --line:#e5e7eb; --text:#111827; --muted:#6b7280;
+      --primary:#2563eb; --primary-600:#1d4ed8; --shadow:0 6px 20px rgba(0,0,0,.05);
+      --radius-lg:14px;
+    }
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+    *{box-sizing:border-box}
+    .container{max-width:880px;margin:0 auto;padding:16px}
+
+    .topbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    .logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#93c5fd,#dbeafe);display:grid;place-items:center;box-shadow:var(--shadow)}
+    .title{font-size:16px;font-weight:800}
+
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+    .grid{display:grid;gap:8px}
+    @media(min-width:720px){.grid-4{grid-template-columns: 160px 160px 1fr 160px}}
+
+    .input,.select{height:36px;display:flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:0 8px}
+    .input input,.select select{border:0;outline:0;background:transparent;width:100%;font-size:13px;color:var(--text)}
+
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .tab{padding:6px 10px;border:1px solid var(--line);background:#fff;border-radius:999px;cursor:pointer;font-size:12px;font-weight:600}
+    .tab[aria-pressed="true"]{background:#e0ecff;border-color:#cfe0ff}
+
+    .list{display:grid;gap:8px;margin-top:8px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:10px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+    .avatar{width:44px;height:44px;border-radius:12px;background:#e0ecff;display:grid;place-items:center;font-weight:800;font-size:16px}
+    .name{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .name h4{margin:0;font-size:14px;font-weight:800}
+    .title-badge{font-size:11px;padding:2px 6px;border-radius:999px;background:#f1f5f9;border:1px solid var(--line);color:#334155;font-weight:600}
+    .desc{color:#475569;font-size:12px;margin-top:4px;line-height:1.4}
+    .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+    .tag{font-size:11px;padding:2px 6px;border-radius:999px;background:#eef2ff;border:1px solid #dbeafe;color:#1d4ed8;font-weight:600}
+
+    .price{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+    .price .p{font-size:15px;font-weight:800}
+    .price .note{color:#6b7280;font-size:11px}
+    .btn{height:32px;padding:0 10px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
+    .btn-primary{background:var(--primary);color:#fff;border-color:transparent}
+    .btn-primary:hover{background:var(--primary-600)}
+
+    .footer{text-align:center;color:var(--muted);font-size:11px;margin:16px 0 8px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="logo">🧾</div>
+      <div class="title">门诊医生就诊价格 · 简介（紧凑版）</div>
+    </div>
+
+    <section class="panel">
+      <div class="grid grid-4">
+        <label class="select"><select id="dep"><option value="">全部科室</option><option>心内科</option><option>神经内科</option><option>消化内科</option><option>骨科</option><option>儿科</option></select></label>
+        <label class="select"><select id="titleSel"><option value="">全部职称</option><option>主任医师</option><option>副主任医师</option><option>主治医师</option></select></label>
+        <label class="input"><input id="kw" placeholder="按医生/专长搜索…" /></label>
+        <label class="select"><select id="sort"><option value="priceAsc">价格从低到高</option><option value="priceDesc">价格从高到低</option><option value="nameAsc">姓名 A→Z</option></select></label>
+      </div>
+      <div class="tabs" aria-label="快速筛选">
+        <button class="tab" data-q="专家门诊" aria-pressed="false">专家门诊</button>
+        <button class="tab" data-q="普通门诊" aria-pressed="false">普通门诊</button>
+        <button class="tab" data-q="特需门诊" aria-pressed="false">特需门诊</button>
+      </div>
+      <div class="list" id="list"></div>
+    </section>
+
+    <div class="footer">* 价格仅供参考，实际以医院结算为准。</div>
+  </div>
+  <script>
+    const DOCTORS=[
+      {name:'张三', title:'主任医师', dep:'心内科', price:120, clinic:'普通门诊', brief:'高血压、冠心病规范化诊疗', tags:['高血压','冠心病']},
+      {name:'李四', title:'副主任医师', dep:'心内科', price:180, clinic:'专家门诊', brief:'复杂心律失常、心衰管理', tags:['心律失常','心衰']},
+      {name:'王五', title:'主治医师', dep:'消化内科', price:80, clinic:'普通门诊', brief:'胃食管反流、幽门螺杆菌根除', tags:['反流性食管炎']},
+      {name:'赵六', title:'主任医师', dep:'神经内科', price:220, clinic:'专家门诊', brief:'脑血管病急性期治疗', tags:['脑梗塞','TIA']},
+      {name:'周琪', title:'副主任医师', dep:'骨科', price:160, clinic:'专家门诊', brief:'运动损伤与关节镜微创', tags:['半月板','关节镜']},
+      {name:'钱明', title:'主治医师', dep:'儿科', price:60, clinic:'普通门诊', brief:'小儿呼吸常见病诊治', tags:['小儿哮喘']},
+      {name:'孙悦', title:'主任医师', dep:'消化内科', price:300, clinic:'特需门诊', brief:'胰胆疾病与内镜治疗', tags:['胆胰疾病']}
+    ];
+    const list=document.getElementById('list');
+    const dep=document.getElementById('dep');
+    const titleSel=document.getElementById('titleSel');
+    const kw=document.getElementById('kw');
+    const sortSel=document.getElementById('sort');
+    document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{const on=t.getAttribute('aria-pressed')==='true';document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-pressed','false'));if(!on)t.setAttribute('aria-pressed','true');apply();}));
+    [dep,titleSel,kw,sortSel].forEach(el=>el.addEventListener('input',apply));
+    function apply(){
+      const depV=dep.value;const titleV=titleSel.value;const qTab=document.querySelector('.tab[aria-pressed="true"]');const clinicV=qTab?qTab.dataset.q:'';const query=(kw.value||'').trim();
+      let rows=DOCTORS.filter(d=>(!depV||d.dep===depV)&&(!titleV||d.title===titleV)&&(!clinicV||d.clinic===clinicV)&&(!query||(d.name+d.brief+d.tags.join(',')).includes(query)));
+      const s=sortSel.value;rows.sort((a,b)=>{if(s==='priceAsc')return a.price-b.price;if(s==='priceDesc')return b.price-a.price;if(s==='nameAsc')return a.name.localeCompare(b.name,'zh');return 0;});
+      render(rows);
+    }
+    function render(rows){list.innerHTML='';rows.forEach(d=>list.appendChild(card(d)));if(rows.length===0){const empty=document.createElement('div');empty.style.cssText='text-align:center;color:#6b7280;padding:12px';empty.textContent='未找到符合条件的医生';list.appendChild(empty);}}
+    function card(d){const el=document.createElement('article');el.className='card';const av=document.createElement('div');av.className='avatar';av.textContent=d.name[0];el.appendChild(av);const mid=document.createElement('div');const row=document.createElement('div');row.className='name';row.innerHTML=`<h4>${d.name}</h4><span class="title-badge">${d.title}</span><span class="title-badge">${d.dep}</span><span class="title-badge">${d.clinic}</span>`;const desc=document.createElement('div');desc.className='desc';desc.textContent=d.brief;const tags=document.createElement('div');tags.className='tags';d.tags.forEach(t=>{const s=document.createElement('span');s.className='tag';s.textContent=t;tags.appendChild(s);});mid.appendChild(row);mid.appendChild(desc);mid.appendChild(tags);el.appendChild(mid);const right=document.createElement('div');right.className='price';right.innerHTML=`<div class="p">¥ ${d.price}</div><div class="note">/次</div>`;const btn=document.createElement('button');btn.className='btn btn-primary';btn.textContent='预约';btn.addEventListener('click',()=>alert(`预约 ${d.name}`));right.appendChild(btn);el.appendChild(right);return el;}
+    apply();
+  </script>
+</body>
+</html>

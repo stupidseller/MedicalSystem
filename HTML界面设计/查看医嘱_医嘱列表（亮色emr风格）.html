@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>查看医嘱 · 列表（亮色EMR风格）</title>
+  <style>
+    :root{ --bg:#f7f8fb; --panel:#ffffff; --panel-2:#f9fafb; --line:#e5e7eb; --text:#111827; --muted:#6b7280; --primary:#2563eb; --primary-600:#1d4ed8; --good:#059669; --warn:#d97706; --danger:#ef4444; --shadow:0 8px 26px rgba(0,0,0,.06); --radius-xl:20px; --radius-lg:14px; --radius-md:10px; }
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+    *{box-sizing:border-box}
+
+    .container{max-width:1160px;margin:0 auto;padding:16px}
+
+    /* 顶部栏 */
+    .topbar{display:flex;align-items:center;gap:10px}
+    .logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#93c5fd,#dbeafe);display:grid;place-items:center;box-shadow:var(--shadow)}
+    .title{font-size:16px;font-weight:900}
+    .spacer{flex:1}
+    .ops{display:flex;gap:8px}
+    .btn{height:34px;padding:0 12px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;font-weight:700}
+    .btn-primary{background:var(--primary);color:#fff;border-color:transparent}
+    .btn-primary:hover{background:var(--primary-600)}
+
+    /* 提醒条 */
+    .alert{display:flex;align-items:center;gap:10px;margin-top:12px;background:#fffbe6;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;box-shadow:var(--shadow)}
+    .alert strong{color:#92400e}
+
+    /* 查询面板 */
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow);padding:14px;margin-top:12px}
+    .panel-title{font-weight:900;margin-bottom:8px}
+    .grid{display:grid;gap:8px}
+    @media(min-width:960px){.grid-4{grid-template-columns: 220px 220px 1fr 160px}}
+    .input,.select{height:40px;display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:0 10px}
+    .input input,.select select{border:0;outline:0;background:transparent;width:100%}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .chip{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;font-weight:700}
+    .chip[aria-pressed="true"]{background:#e0ecff;border-color:#cfe0ff}
+
+    /* 列表 */
+    .list{display:grid;gap:8px;margin-top:10px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:10px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+    .icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:900;color:#fff}
+    .ic-med{background:#60a5fa}
+    .ic-lab{background:#34d399}
+    .ic-img{background:#a78bfa}
+    .ic-nur{background:#f59e0b}
+    .ic-proc{background:#f87171}
+
+    .name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .name-row h4{margin:0;font-size:14px;font-weight:900}
+    .badge{font-size:11px;padding:2px 6px;border-radius:999px;border:1px solid var(--line);background:#f1f5f9}
+    .badge.stat{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+    .badge.prn{background:#e0f2fe;border-color:#bae6fd;color:#075985}
+    .badge.stop{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+    .badge.act{background:#ecfdf5;border-color:#bbf7d0;color:#065f46}
+
+    .desc{color:#475569;font-size:12px}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;color:#64748b;font-size:12px}
+    .warn{color:#b91c1c;font-weight:900}
+
+    .right{display:grid;gap:6px;justify-items:end}
+    .ack{display:flex;gap:6px}
+
+    /* 详情弹窗 */
+    dialog{border:0;border-radius:14px;box-shadow:var(--shadow);width:min(720px,94vw)}
+    dialog::backdrop{background:rgba(0,0,0,.2)}
+    .d-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+    .kv{display:grid;grid-template-columns:120px 1fr;gap:6px;margin:8px 0}
+    .k{color:var(--muted)}
+    .mar{display:grid;gap:6px;margin-top:8px}
+    .mar-row{display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center}
+    .bar{height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden}
+    .bar > div{height:100%;background:#60a5fa}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="logo">℞</div>
+      <div class="title">查看医嘱</div>
+      <div class="spacer"></div>
+      <div class="ops">
+        <button class="btn">打印</button>
+        <button id="export" class="btn btn-primary">导出CSV</button>
+      </div>
+    </div>
+
+    <div class="alert"><strong>提醒：</strong> 当前就诊有 <span id="alertCnt">0</span> 条加急/过敏冲突医嘱，请优先处理。</div>
+
+    <section class="panel">
+      <div class="panel-title">筛选</div>
+      <div class="grid grid-4">
+        <label class="select"><select id="enc"><option value="op">门诊（OP）</option><option value="ip">住院（IP）</option></select></label>
+        <label class="select"><select id="type"><option value="all">全部类型</option><option value="MED">用药</option><option value="LAB">检验</option><option value="IMG">影像</option><option value="NUR">护理</option><option value="PROC">处置</option></select></label>
+        <label class="input"><input id="kw" placeholder="按医嘱名/医师/备注搜索…"/></label>
+        <label class="select"><select id="statusSel"><option value="active">进行中</option><option value="today">今日</option><option value="history">历史</option></select></label>
+      </div>
+      <div class="chips" aria-label="快捷过滤">
+        <button class="chip" data-q="STAT">加急 STAT</button>
+        <button class="chip" data-q="PRN">按需 PRN</button>
+        <button class="chip" data-q="ALGY">含过敏冲突</button>
+      </div>
+
+      <div id="list" class="list"></div>
+    </section>
+  </div>
+
+  <dialog id="detail">
+    <form method="dialog" style="padding:12px 14px 14px">
+      <div class="d-head"><div style="font-weight:900" id="d-title">医嘱详情</div><button class="btn">关闭</button></div>
+      <div class="kv">
+        <div class="k">类型</div><div id="d-type">—</div>
+        <div class="k">状态</div><div id="d-status">—</div>
+        <div class="k">优先级</div><div id="d-pri">—</div>
+        <div class="k">开立医生</div><div id="d-doc">—</div>
+        <div class="k">开始/结束</div><div id="d-time">—</div>
+        <div class="k">医嘱内容</div><div id="d-body">—</div>
+        <div class="k">备注</div><div id="d-note">—</div>
+      </div>
+      <div id="marWrap" style="display:none">
+        <div style="font-weight:900; margin-top:6px">用药执行（MAR）</div>
+        <div class="mar" id="mar"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px"><button class="btn">关闭</button><button class="btn btn-primary" value="ok">已知晓</button></div>
+    </form>
+  </dialog>
+
+  <script>
+    // —— 示例医嘱数据 ——
+    const ORDERS=[
+      {id:1, enc:'op', type:'MED', name:'阿司匹林肠溶片 100mg', detail:'PO qd 饭后 · 30 天', prio:'Routine', prn:false, status:'Active', start:'2025-08-26 10:10', stop:'', doctor:'张三 主任', warn:'—', allergy:false},
+      {id:2, enc:'op', type:'LAB', name:'血脂全套（TC/TG/LDL/HDL）', detail:'空腹 · 当日采集', prio:'Routine', prn:false, status:'Active', start:'2025-08-26 10:20', stop:'', doctor:'张三 主任', warn:'—', allergy:false},
+      {id:3, enc:'op', type:'IMG', name:'心电图（12 导）', detail:'今日完成', prio:'STAT', prn:false, status:'Active', start:'2025-08-26 10:25', stop:'', doctor:'张三 主任', warn:'加急', allergy:false},
+      {id:4, enc:'ip', type:'MED', name:'头孢曲松钠 2g', detail:'IV qd 静滴 · 100ml/h', prio:'Routine', prn:false, status:'Active', start:'2025-08-25 09:00', stop:'', doctor:'李四 主任', warn:'青霉素过敏交叉风险', allergy:true,
+        mar:[
+          {time:'08-25 09:10', dur:60, rate:100, note:'完成'},
+          {time:'08-26 09:05', dur:60, rate:100, note:'进行中'}
+        ]
+      },
+      {id:5, enc:'ip', type:'NUR', name:'生命体征监测', detail:'q4h · 观察血压/心率', prio:'Routine', prn:false, status:'Active', start:'2025-08-25 08:00', stop:'', doctor:'责任护士', warn:'—', allergy:false},
+      {id:6, enc:'ip', type:'PROC', name:'胃镜检查预约', detail:'NPO 8 小时 · 知情同意', prio:'Routine', prn:false, status:'Planned', start:'2025-08-28 14:00', stop:'', doctor:'消化科 王五', warn:'—', allergy:false},
+      {id:7, enc:'op', type:'MED', name:'布洛芬 200mg', detail:'PO prn q8h · 头痛时', prio:'Routine', prn:true, status:'Active', start:'2025-08-20 11:00', stop:'', doctor:'王五 主治', warn:'NSAIDs 谨慎', allergy:false}
+    ];
+
+    const list = document.getElementById('list');
+    const enc = document.getElementById('enc');
+    const typeSel = document.getElementById('type');
+    const kw = document.getElementById('kw');
+    const statusSel = document.getElementById('statusSel');
+
+    document.querySelectorAll('.chip').forEach(c=> c.addEventListener('click',()=>{ c.toggleAttribute('aria-pressed'); render(); }));
+    [enc,typeSel,kw,statusSel].forEach(el=> el.addEventListener('input', render));
+
+    function render(){
+      const q=(kw.value||'').trim();
+      const t=typeSel.value; const e=enc.value; const s=statusSel.value;
+      const filters=[...document.querySelectorAll('.chip[aria-pressed]')].map(x=>x.dataset.q);
+
+      const rows = ORDERS.filter(o=>
+        (e?o.enc===e:true) &&
+        (t==='all'||o.type===t) &&
+        (s==='active'? o.status!=='Stopped' : s==='today'? o.start.startsWith('2025-08-26') : true) &&
+        (!q || (o.name+o.detail+o.doctor+(o.warn||'')).includes(q)) &&
+        (!filters.includes('STAT') || o.prio==='STAT') &&
+        (!filters.includes('PRN') || o.prn===true) &&
+        (!filters.includes('ALGY') || o.allergy===true)
+      );
+
+      list.innerHTML='';
+      let alertCnt=0;
+      rows.forEach(o=>{ list.appendChild(card(o)); if(o.prio==='STAT'||o.allergy) alertCnt++; });
+      document.getElementById('alertCnt').textContent = alertCnt;
+      if(rows.length===0){ const empty=document.createElement('div'); empty.style.cssText='text-align:center;color:#6b7280;padding:12px'; empty.textContent='没有符合条件的医嘱'; list.appendChild(empty); }
+    }
+
+    function card(o){
+      const el=document.createElement('article'); el.className='card';
+      const ic=document.createElement('div'); ic.className='icon '+typeIcon(o.type); ic.textContent=typeText(o.type);
+      el.appendChild(ic);
+
+      const mid=document.createElement('div');
+      const row=document.createElement('div'); row.className='name-row';
+      row.innerHTML = `<h4>${o.name}</h4>`+
+        (o.prio==='STAT'?'<span class="badge stat">STAT</span>':'')+
+        (o.prn?'<span class="badge prn">PRN</span>':'')+
+        (o.status==='Active'?'<span class="badge act">进行中</span>': o.status==='Planned'?'<span class="badge">计划</span>':'<span class="badge stop">已停</span>');
+      const desc=document.createElement('div'); desc.className='desc'; desc.textContent = o.detail;
+      const meta=document.createElement('div'); meta.className='meta';
+      meta.innerHTML = `<span>${o.doctor}</span> · <span>${o.start}${o.stop?(' — '+o.stop):''}</span>` + (o.warn?` · <span class="warn">${o.warn}</span>`:'');
+      mid.appendChild(row); mid.appendChild(desc); mid.appendChild(meta); el.appendChild(mid);
+
+      const right=document.createElement('div'); right.className='right';
+      const view=document.createElement('button'); view.className='btn'; view.textContent='详情'; view.addEventListener('click',()=>openDetail(o));
+      const ack=document.createElement('div'); ack.className='ack';
+      const ackBtn=document.createElement('button'); ackBtn.className='btn btn-primary'; ackBtn.textContent='已知晓'; ackBtn.addEventListener('click',()=>ackOrder(o,ackBtn));
+      ack.appendChild(ackBtn);
+      right.appendChild(view); right.appendChild(ack);
+      el.appendChild(right);
+
+      return el;
+    }
+
+    function typeIcon(t){ return t==='MED'?'ic-med':t==='LAB'?'ic-lab':t==='IMG'?'ic-img':t==='NUR'?'ic-nur':'ic-proc'; }
+    function typeText(t){ return t==='MED'?'药':t==='LAB'?'检':t==='IMG'?'影':t==='NUR'?'护':'处'; }
+
+    // —— 详情弹窗 ——
+    const dlg=document.getElementById('detail');
+    function openDetail(o){
+      document.getElementById('d-title').textContent = o.name;
+      document.getElementById('d-type').textContent = o.type+'（'+typeText(o.type)+'）';
+      document.getElementById('d-status').textContent = o.status;
+      document.getElementById('d-pri').textContent = (o.prio||'Routine') + (o.prn?' · PRN':'');
+      document.getElementById('d-doc').textContent = o.doctor;
+      document.getElementById('d-time').textContent = o.start + (o.stop?(' — '+o.stop):'');
+      document.getElementById('d-body').textContent = o.detail;
+      document.getElementById('d-note').textContent = o.warn||'—';
+
+      const marWrap=document.getElementById('marWrap');
+      const mar=document.getElementById('mar'); mar.innerHTML='';
+      if(o.type==='MED' && o.mar){
+        marWrap.style.display='block';
+        o.mar.forEach(x=>{
+          const r=document.createElement('div'); r.className='mar-row';
+          r.innerHTML = `<div>${x.time} · ${x.rate} ml/h</div><div class="bar"><div style="width:${Math.min(100, x.dur)}%"></div></div>`;
+          mar.appendChild(r);
+        });
+      } else { marWrap.style.display='none'; }
+
+      dlg.showModal();
+    }
+
+    function ackOrder(o,btn){ btn.textContent='已标记'; btn.disabled=true; btn.classList.remove('btn-primary'); btn.classList.add('btn'); }
+
+    // —— 导出 CSV ——
+    document.getElementById('export').addEventListener('click',()=>{
+      const rows = [...document.querySelectorAll('#list .card')].length? ORDERS : [];
+      let csv='类型,名称,内容,优先级,PRN,状态,开始,结束,医生,警示\n';
+      rows.forEach(o=>{ csv+=`${o.type},${o.name},${o.detail},${o.prio},${o.prn?'是':'否'},${o.status},${o.start},${o.stop},${o.doctor},${o.warn}\n`; });
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='orders.csv'; a.click(); URL.revokeObjectURL(a.href);
+    });
+
+    render();
+  </script>
+</body>
+</html>

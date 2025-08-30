@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>病理与检验指标（亮色）</title>
+  <style>
+    :root{ --bg:#f7f8fb; --panel:#ffffff; --panel-2:#f9fafb; --line:#e5e7eb; --text:#111827; --muted:#6b7280; --primary:#2563eb; --primary-600:#1d4ed8; --success:#059669; --warning:#d97706; --danger:#ef4444; --shadow:0 10px 30px rgba(0,0,0,.07); --radius-xl:20px; --radius-lg:16px; --radius-md:12px; }
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+    *{box-sizing:border-box}
+    .container{max-width:1160px;margin:0 auto;padding:20px}
+
+    /* 顶部栏 */
+    .topbar{display:flex;align-items:center;gap:12px}
+    .logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#93c5fd,#dbeafe);display:grid;place-items:center;box-shadow:var(--shadow)}
+    .title{font-size:18px;font-weight:800}
+    .spacer{flex:1}
+
+    /* 卡片/面板 */
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow);padding:16px;margin-top:14px}
+    .panel-title{font-size:18px;font-weight:800;margin-bottom:10px}
+
+    /* 患者概要 + 过敏史 */
+    .summary{display:grid;gap:14px}
+    @media(min-width:960px){.summary{grid-template-columns: 1.2fr 1fr}}
+    .kv{display:grid;grid-template-columns:110px 1fr;gap:6px}
+    .k{color:var(--muted)}
+    .allergy{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12px;font-weight:700}
+    .chip.d{background:#ffecec;border-color:#fecaca;color:#b91c1c}
+    .chip.w{background:#fff7ed;border-color:#fed7aa;color:#b45309}
+    .chip.s{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}
+    .btn{height:36px;padding:0 12px;border:1px solid var(--line);background:#fff;border-radius:10px;cursor:pointer;font-weight:700}
+    .btn-primary{background:var(--primary);color:#fff;border-color:transparent}
+
+    /* 筛选控制 */
+    .grid{display:grid;gap:10px}
+    @media(min-width:960px){.grid-4{grid-template-columns: 220px 220px 1fr 180px}}
+    .input,.select{height:40px;display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:0 10px}
+    .input input{border:0;outline:0;background:transparent;width:100%;font-size:14px}
+    .select select{border:0;outline:0;background:transparent;width:100%;font-size:14px}
+    .switch{display:flex;align-items:center;gap:8px}
+
+    /* 分类页签 */
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .tab{padding:8px 12px;border:1px solid var(--line);background:#fff;border-radius:999px;cursor:pointer;font-weight:700}
+    .tab[aria-pressed="true"]{background:#e0ecff;border-color:#cfe0ff}
+
+    /* 表格 */
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    thead th{font-size:12px;color:#64748b;text-align:left;padding:0 10px}
+    tbody tr{background:var(--panel-2);border:1px solid var(--line)}
+    tbody td{padding:12px 10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    tbody td:first-child{border-left:1px solid var(--line);border-top-left-radius:12px;border-bottom-left-radius:12px}
+    tbody td:last-child{border-right:1px solid var(--line);border-top-right-radius:12px;border-bottom-right-radius:12px}
+    .val{font-weight:800}
+    .hi{color:#b91c1c;background:#fff1f2;padding:2px 6px;border-radius:6px}
+    .lo{color:#b45309;background:#fff7ed;padding:2px 6px;border-radius:6px}
+    .ok{color:#065f46;background:#ecfdf5;padding:2px 6px;border-radius:6px}
+    .ref{color:#64748b;font-size:12px}
+    .spark{width:120px;height:32px}
+
+    /* 病理报告列表 */
+    .plist{display:grid;gap:10px}
+    .pitem{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;grid-template-columns:1fr auto;gap:10px}
+
+    .footer{text-align:center;color:var(--muted);font-size:12px;margin:24px 0 10px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar"><div class="logo">🧪</div><div class="title">病理与检验指标</div><div class="spacer"></div></div>
+
+    <!-- 患者概要 & 过敏史 -->
+    <section class="panel">
+      <div class="panel-title">患者概要与过敏史</div>
+      <div class="summary">
+        <div>
+          <div class="kv"><div class="k">姓名</div><div>张三</div></div>
+          <div class="kv"><div class="k">性别/年龄</div><div>男 / 45</div></div>
+          <div class="kv"><div class="k">既往史</div><div>高血压 8 年；脂代谢异常</div></div>
+          <div class="kv"><div class="k">当前用药</div><div>缬沙坦 80mg qd；瑞舒伐他汀 10mg qn</div></div>
+        </div>
+        <div class="allergy">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px; margin-bottom:6px"><strong>过敏史</strong><div style="display:flex;gap:8px"><button id="addAlg" class="btn">新增</button><button id="clearAlg" class="btn">清空</button></div></div>
+          <div id="algList" class="chips">
+            <span class="chip d">青霉素</span>
+            <span class="chip w">花生</span>
+            <span class="chip s">无尘粉尘</span>
+          </div>
+          <div style="color:var(--muted);font-size:12px;margin-top:6px">注：红=严重，橙=中等，绿=轻微。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 检验筛选与表格 -->
+    <section class="panel">
+      <div class="panel-title">检验指标</div>
+      <div class="grid grid-4">
+        <label class="select"><select id="cate">
+          <option value="blood">血常规</option><option value="bio">生化</option><option value="coag">凝血</option><option value="immu">免疫</option><option value="tumor">肿瘤标志物</option>
+        </select></label>
+        <label class="input"><input id="kw" placeholder="按项目名称搜索…"/></label>
+        <label class="select"><select id="rangeMode"><option value="ref">显示参考区间</option><option value="z">显示Z分数</option></select></label>
+        <div class="switch"><input id="onlyAbn" type="checkbox"/> <label for="onlyAbn">仅看异常</label></div>
+      </div>
+      <div style="margin-top:10px" class="tabs" aria-label="快速时间窗">
+        <button class="tab" data-window="7" aria-pressed="true">近 7 天</button>
+        <button class="tab" data-window="30" aria-pressed="false">近 30 天</button>
+        <button class="tab" data-window="180" aria-pressed="false">近 6 个月</button>
+      </div>
+
+      <div style="overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th>项目</th><th>结果</th><th>单位</th><th id="refHead">参考范围</th><th>趋势</th><th>时间</th><th>标记</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+        <button id="export" class="btn">导出CSV</button>
+      </div>
+    </section>
+
+    <!-- 病理报告 -->
+    <section class="panel">
+      <div class="panel-title">病理报告</div>
+      <div class="plist" id="plist"></div>
+    </section>
+
+    <div class="footer">* 数据为示例占位，异常标记仅供参考，请以医生解读为准。</div>
+  </div>
+
+  <script>
+    // —— 过敏史 ——
+    const algList=document.getElementById('algList');
+    document.getElementById('addAlg').addEventListener('click',()=>{
+      const txt=prompt('输入过敏项（可加前缀：严重/中等/轻微）：');
+      if(!txt) return;
+      let cls='s', label=txt;
+      if(/^严重/.test(txt)){cls='d'; label=txt.replace(/^严重[:：]?\s*/,'');}
+      else if(/^中等/.test(txt)){cls='w'; label=txt.replace(/^中等[:：]?\s*/,'');}
+      else if(/^轻微/.test(txt)){cls='s'; label=txt.replace(/^轻微[:：]?\s*/,'');}
+      const chip=document.createElement('span'); chip.className='chip '+cls; chip.textContent=label; algList.appendChild(chip);
+    });
+    document.getElementById('clearAlg').addEventListener('click',()=>{algList.innerHTML='';});
+
+    // —— 检验数据示例 ——
+    const DATA={
+      blood:[
+        {name:'WBC 白细胞', unit:'×10^9/L', ref:[3.5,9.5], vals:[6.2,6.8,7.1,8.9], time:'2025-08-26 09:10'},
+        {name:'RBC 红细胞', unit:'×10^12/L', ref:[4.3,5.8], vals:[4.0,4.1,4.2,4.1], time:'2025-08-26 09:10'},
+        {name:'HGB 血红蛋白', unit:'g/L', ref:[130,175], vals:[118,120,122,119], time:'2025-08-26 09:10'},
+        {name:'PLT 血小板', unit:'×10^9/L', ref:[125,350], vals:[210,198,205,199], time:'2025-08-26 09:10'}
+      ],
+      bio:[
+        {name:'ALT 谷丙转氨酶', unit:'U/L', ref:[9,50], vals:[32,41,65,58], time:'2025-08-20 08:30'},
+        {name:'AST 谷草转氨酶', unit:'U/L', ref:[15,40], vals:[28,35,49,42], time:'2025-08-20 08:30'},
+        {name:'TG 甘油三酯', unit:'mmol/L', ref:[0.4,1.7], vals:[2.4,2.2,2.0,1.8], time:'2025-08-18 07:50'},
+        {name:'TC 总胆固醇', unit:'mmol/L', ref:[2.8,5.2], vals:[5.6,5.3,5.1,4.9], time:'2025-08-18 07:50'}
+      ],
+      coag:[
+        {name:'PT 凝血酶原时间', unit:'s', ref:[9,13], vals:[12.1,12.5,13.8,13.2], time:'2025-08-10 10:00'},
+        {name:'APTT 活化部分凝血活酶时间', unit:'s', ref:[25,35], vals:[30,31,36,34], time:'2025-08-10 10:00'}
+      ],
+      immu:[
+        {name:'CRP C反应蛋白', unit:'mg/L', ref:[0,8], vals:[4.2,5.1,12.0,9.0], time:'2025-08-08 11:10'},
+        {name:'IgE 免疫球蛋白E', unit:'IU/mL', ref:[0,100], vals:[220,210,205,198], time:'2025-08-08 11:10'}
+      ],
+      tumor:[
+        {name:'CEA 癌胚抗原', unit:'ng/mL', ref:[0,5], vals:[2.1,2.3,2.2,2.0], time:'2025-07-30 09:20'},
+        {name:'CA-125', unit:'U/mL', ref:[0,35], vals:[18,20,22,21], time:'2025-07-30 09:20'}
+      ]
+    };
+
+    const tbody=document.getElementById('tbody');
+    const cate=document.getElementById('cate');
+    const kw=document.getElementById('kw');
+    const onlyAbn=document.getElementById('onlyAbn');
+    const rangeMode=document.getElementById('rangeMode');
+
+    document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-pressed','false'));
+      t.setAttribute('aria-pressed','true');
+      render();
+    }));
+    [cate,kw,onlyAbn,rangeMode].forEach(el=>el.addEventListener('input',render));
+
+    function zScore(v,ref){ const mu=(ref[0]+ref[1])/2, sigma=(ref[1]-ref[0])/4; return ((v-mu)/sigma).toFixed(2); }
+    function mark(v,ref){ if(v<ref[0]) return '<span class="lo">L</span>'; if(v>ref[1]) return '<span class="hi">H</span>'; return '<span class="ok">N</span>'; }
+    function last(arr){return arr[arr.length-1]}
+    function svgSpark(vals, ref){
+      const w=120,h=32,p=2; const max=Math.max(...vals, ref?ref[1]:-Infinity), min=Math.min(...vals, ref?ref[0]:Infinity);
+      const xs=vals.map((_,i)=> p + i*( (w-2*p)/(vals.length-1) ));
+      const ys=vals.map(v=> h-p - ( (v-min)/(max-min||1) )*(h-2*p));
+      let d=''; for(let i=0;i<vals.length;i++){ d += (i?'L':'M')+xs[i]+','+ys[i]; }
+      const refBand = ref?`<rect x="0" y="${h-p- ( (ref[1]-min)/(max-min||1) )*(h-2*p)}" width="${w}" height="${ ((ref[1]-ref[0])/(max-min||1))*(h-2*p)}" fill="#e5f3ff"/>`:'';
+      return `<svg class="spark" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${refBand}<path d="${d}" fill="none" stroke="#2563eb" stroke-width="2"/></svg>`;
+    }
+
+    function render(){
+      const cat=cate.value; const win=parseInt(document.querySelector('.tab[aria-pressed="true"]').dataset.window,10);
+      const q=(kw.value||'').trim(); const arr=(DATA[cat]||[]).slice(-8); // 取最近几次
+      tbody.innerHTML='';
+      arr.filter(r=> !q || r.name.includes(q)).forEach(r=>{
+        const v = last(r.vals);
+        const abnormal = v<r.ref[0] || v>r.ref[1];
+        if(onlyAbn.checked && !abnormal) return;
+        const refCell = rangeMode.value==='z' ? `Z=${zScore(v,r.ref)}` : `${r.ref[0]}–${r.ref[1]}`;
+        const tr=document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.name}</td>
+          <td class="val">${v.toFixed ? v.toFixed(2) : v}</td>
+          <td>${r.unit}</td>
+          <td class="ref">${refCell}</td>
+          <td>${svgSpark(r.vals, r.ref)}</td>
+          <td>${r.time}</td>
+          <td style="text-align:center">${mark(v,r.ref)}</td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('refHead').textContent = rangeMode.value==='z' ? 'Z分数' : '参考范围';
+    }
+
+    // —— 导出 CSV ——
+    document.getElementById('export').addEventListener('click',()=>{
+      const cat=cate.value; const rows=DATA[cat]||[]; let csv='项目,结果(最新),单位,参考下限,参考上限,时间\n';
+      rows.forEach(r=>{ const v=last(r.vals); csv+=`${r.name},${v},${r.unit},${r.ref[0]},${r.ref[1]},${r.time}\n`; });
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${cat}-labs.csv`; a.click(); URL.revokeObjectURL(a.href);
+    });
+
+    // —— 病理报告（示例） ——
+    const PDATA=[
+      {id:101, date:'2025-08-05', specimen:'胃窦活检', diag:'慢性浅表性胃炎（轻）', note:'未见幽门螺杆菌', files:['病理报告-胃窦活检.pdf']},
+      {id:102, date:'2025-06-12', specimen:'甲状腺结节穿刺', diag:'良性滤泡性病变（Bethesda II）', note:'建议 6-12 月复查超声', files:['病理细胞学报告.pdf']}
+    ];
+    const plist=document.getElementById('plist');
+    function renderPath(){
+      plist.innerHTML='';
+      PDATA.forEach(p=>{
+        const row=document.createElement('div'); row.className='pitem';
+        row.innerHTML=`<div><div style="font-weight:800">${p.specimen} · ${p.date}</div><div style="color:#475569;margin-top:4px">诊断：${p.diag}</div><div style=\"color:#64748b;font-size:13px;margin-top:2px\">备注：${p.note}</div></div>`;
+        const right=document.createElement('div'); right.style.display='grid'; right.style.gap='6px'; right.style.alignContent='center';
+        const btn1=document.createElement('button'); btn1.className='btn'; btn1.textContent='下载PDF'; btn1.addEventListener('click',()=>alert('下载 '+p.files[0]));
+        const btn2=document.createElement('button'); btn2.className='btn btn-primary'; btn2.textContent='查看详情'; btn2.addEventListener('click',()=>alert('打开详情 #'+p.id));
+        right.appendChild(btn1); right.appendChild(btn2); row.appendChild(right);
+        plist.appendChild(row);
+      });
+    }
+
+    render(); renderPath();
+  </script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>预约就诊（亮色主题）</title>
+  <style>
+    /* ========== 设计令牌（与前页一致） ========== */
+    :root{
+      --bg:#f7f8fb; --panel:#ffffff; --panel-2:#f9fafb; --line:#e5e7eb; --text:#111827; --muted:#6b7280;
+      --primary:#2563eb; --primary-600:#1d4ed8; --success:#059669; --warning:#d97706; --danger:#ef4444;
+      --shadow:0 10px 30px rgba(0,0,0,.07); --radius-xl:20px; --radius-lg:16px; --radius-md:12px;
+    }
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+    *{box-sizing:border-box}
+    .container{max-width:1160px;margin:0 auto;padding:20px}
+
+    /* 顶部 */
+    .topbar{display:flex;align-items:center;gap:12px}
+    .logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#93c5fd,#dbeafe);display:grid;place-items:center;box-shadow:var(--shadow)}
+    .title{font-size:18px;font-weight:800}
+    .spacer{flex:1}
+
+    /* 面板 */
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow);padding:18px;margin-top:16px}
+    .panel-title{font-size:18px;font-weight:800;margin-bottom:10px}
+
+    /* 步骤条 */
+    .steps{display:flex;gap:10px;align-items:center;margin-top:8px}
+    .step{display:flex;align-items:center;gap:8px}
+    .dot{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;background:#e5edff;color:#1d4ed8;font-weight:800}
+    .bar{height:2px;background:var(--line);flex:1;border-radius:999px}
+
+    /* 表单 */
+    .grid{display:grid;gap:12px}
+    @media(min-width:960px){.grid-3{grid-template-columns:1fr 1fr 1fr}}
+    @media(min-width:960px){.grid-2{grid-template-columns:1fr 1fr}}
+    .field label{font-size:13px;color:var(--muted)}
+    .input,.select{height:44px;display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:0 12px}
+    .input input{border:0;outline:0;background:transparent;width:100%;font-size:14px;color:var(--text)}
+    .select select{border:0;outline:0;background:transparent;width:100%;font-size:14px;color:var(--text)}
+
+    /* Chips */
+    .chips{display:flex;gap:10px;flex-wrap:wrap}
+    .chip{padding:8px 12px;border:1px solid var(--line);background:#f1f5f9;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer}
+    .chip[aria-pressed="true"]{background:#e0ecff;border-color:#cfe0ff}
+
+    /* 日历与时段 */
+    .slot-wrap{display:grid;gap:16px}
+    @media(min-width:960px){.slot-wrap{grid-template-columns: 380px 1fr}}
+    .calendar{background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:12px}
+    .calendar .row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .calendar .day,.calendar .head{height:42px;display:grid;place-items:center;border-radius:10px;font-weight:600}
+    .calendar .head{color:#475569}
+    .calendar .day{background:#fff;border:1px solid var(--line);cursor:pointer}
+    .calendar .day.is-today{outline:2px solid #bfdbfe}
+    .calendar .day.is-selected{background:#2563eb;color:#fff;border-color:#2563eb}
+    .calendar .day.is-disabled{opacity:.4;cursor:not-allowed}
+
+    .slots{background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:12px}
+    .slots h4{margin:6px 6px 10px;font-size:14px;color:#334155}
+    .slot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .slot{height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;display:grid;place-items:center;font-weight:700;cursor:pointer}
+    .slot[aria-disabled="true"]{opacity:.4;cursor:not-allowed}
+    .slot[aria-pressed="true"], .slot:focus{outline:2px solid #93c5fd;background:#e8f0ff}
+
+    /* 侧栏摘要 */
+    .summary{background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .summary h4{margin:0 0 10px;font-size:15px}
+    .kv{display:grid;grid-template-columns:100px 1fr;gap:6px;margin-bottom:6px}
+    .kv .k{color:var(--muted)}
+
+    /* 提示与底部按钮 */
+    .remind{background:#fffbe6;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;color:#78350f}
+    .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+    .btn{height:44px;padding:0 18px;border:1px solid var(--line);background:#fff;border-radius:12px;cursor:pointer;font-weight:700}
+    .btn-primary{background:var(--primary);color:#fff;border-color:transparent}
+    .btn-primary:hover{background:var(--primary-600)}
+
+    /* 弹窗 */
+    dialog{border:0;border-radius:16px;box-shadow:var(--shadow);width:min(520px,92vw)}
+    dialog::backdrop{background:rgba(0,0,0,.2)}
+    .modal-head{font-weight:800;font-size:16px;margin-bottom:10px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="logo" aria-hidden="true">🏥</div>
+      <div class="title">预约就诊</div>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">选择就诊信息</div>
+      <div class="steps" aria-label="步骤">
+        <div class="step"><div class="dot">1</div><div>选择科室/医生</div></div>
+        <div class="bar"></div>
+        <div class="step"><div class="dot">2</div><div>选择日期/时段</div></div>
+        <div class="bar"></div>
+        <div class="step"><div class="dot">3</div><div>确认并提交</div></div>
+      </div>
+
+      <div class="grid grid-3" style="margin-top:14px">
+        <label class="select"><select id="dep">
+          <option>心内科</option><option>神经内科</option><option>消化内科</option><option>骨科</option><option>儿科</option>
+        </select></label>
+        <label class="select"><select id="doc">
+          <option>张三 · 主任医师</option><option>李四 · 副主任医师</option><option>王五 · 主治医师</option>
+        </select></label>
+        <label class="select"><select id="loc">
+          <option>本部门诊</option><option>东院区</option><option>互联网门诊</option>
+        </select></label>
+      </div>
+
+      <div class="chips" style="margin-top:10px" aria-label="就诊类型">
+        <button class="chip" data-type="初诊" aria-pressed="true">初诊</button>
+        <button class="chip" data-type="复诊" aria-pressed="false">复诊</button>
+        <button class="chip" data-type="复查" aria-pressed="false">复查</button>
+        <button class="chip" data-type="远程" aria-pressed="false">远程问诊</button>
+      </div>
+
+      <div class="slot-wrap" style="margin-top:14px">
+        <!-- 左：日历 -->
+        <section class="calendar" aria-label="选择日期">
+          <div class="row head"><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div></div>
+          <div id="cal-grid" class="row" style="grid-auto-rows:42px; grid-template-columns:repeat(7,1fr); gap:6px; flex-wrap:wrap"></div>
+        </section>
+
+        <!-- 右：时段 + 摘要 -->
+        <div class="grid grid-2">
+          <section class="slots" aria-label="选择时段">
+            <h4>上午</h4>
+            <div id="am" class="slot-grid"></div>
+            <h4 style="margin-top:12px">下午</h4>
+            <div id="pm" class="slot-grid"></div>
+          </section>
+          <aside class="summary" aria-live="polite">
+            <h4>预约摘要</h4>
+            <div class="kv"><div class="k">科室</div><div id="s-dep">心内科</div></div>
+            <div class="kv"><div class="k">医生</div><div id="s-doc">张三 · 主任医师</div></div>
+            <div class="kv"><div class="k">地点</div><div id="s-loc">本部门诊</div></div>
+            <div class="kv"><div class="k">类型</div><div id="s-type">初诊</div></div>
+            <div class="kv"><div class="k">日期</div><div id="s-date">—</div></div>
+            <div class="kv"><div class="k">时段</div><div id="s-time">—</div></div>
+            <div class="remind" style="margin-top:10px">请提前10分钟到达候诊区，携带有效证件与医保卡。</div>
+          </aside>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="submit" class="btn btn-primary" disabled>提交预约</button>
+      </div>
+    </div>
+  </div>
+
+  <dialog id="ok">
+    <form method="dialog" style="padding:16px">
+      <div class="modal-head">预约已提交</div>
+      <div style="color:var(--muted);font-size:14px">我们已向您的手机发送确认短信，请按时就诊。</div>
+      <div class="actions" style="margin-top:12px"><button class="btn btn-primary">好的</button></div>
+    </form>
+  </dialog>
+
+  <script>
+    // —— Chips 切换 ——
+    document.querySelectorAll('.chip').forEach(c=>{
+      c.addEventListener('click',()=>{
+        document.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed','false'));
+        c.setAttribute('aria-pressed','true');
+        document.getElementById('s-type').textContent = c.dataset.type;
+      });
+    });
+
+    // —— 下拉同步摘要 ——
+    const dep=document.getElementById('dep'), doc=document.getElementById('doc'), loc=document.getElementById('loc');
+    dep.addEventListener('change',()=>document.getElementById('s-dep').textContent=dep.value);
+    doc.addEventListener('change',()=>document.getElementById('s-doc').textContent=doc.value);
+    loc.addEventListener('change',()=>document.getElementById('s-loc').textContent=loc.value);
+
+    // —— 生成本月剩余 5x7 日历 ——
+    const cal = document.getElementById('cal-grid');
+    const today = new Date();
+    const first = new Date(today.getFullYear(), today.getMonth(), 1);
+    const startOffset = (first.getDay() || 7) - 1; // 以周一为首
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+    const cells = 35; // 5 行
+    for(let i=0;i<cells;i++){
+      const div=document.createElement('button');
+      div.className='day';
+      div.setAttribute('type','button');
+      const d=i-startOffset+1;
+      if(d<1 || d>daysInMonth){
+        div.textContent=''; div.disabled=true; div.classList.add('is-disabled');
+      }else{
+        div.textContent=d;
+        const dateObj=new Date(today.getFullYear(), today.getMonth(), d);
+        const isPast = dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        if(isPast){ div.classList.add('is-disabled'); div.disabled=true; }
+        if(d===today.getDate()) div.classList.add('is-today');
+        div.addEventListener('click',()=>selectDate(dateObj, div));
+      }
+      cal.appendChild(div);
+    }
+
+    let selectedDate=null, selectedSlot=null;
+
+    function selectDate(d, el){
+      selectedDate=d; selectedSlot=null; updateSubmit();
+      document.querySelectorAll('.calendar .day').forEach(x=>x.classList.remove('is-selected'));
+      el.classList.add('is-selected');
+      document.getElementById('s-date').textContent = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      // 生成时段（模拟）
+      genSlots();
+    }
+
+    function genSlots(){
+      const am=document.getElementById('am'), pm=document.getElementById('pm');
+      am.innerHTML=''; pm.innerHTML='';
+      const amList=['08:00','08:20','08:40','09:00','09:20','09:40','10:00','10:20'];
+      const pmList=['13:30','13:50','14:10','14:30','14:50','15:10','15:30','15:50'];
+      const randDisabled = (t)=> (selectedDate && selectedDate.getDate()+t.length)%3===0; // 伪随机禁用
+      amList.forEach(t=>am.appendChild(makeSlot(t, randDisabled(t))));
+      pmList.forEach(t=>pm.appendChild(makeSlot(t, randDisabled(t))));
+    }
+
+    function makeSlot(text, disabled){
+      const b=document.createElement('button');
+      b.className='slot'; b.type='button'; b.textContent=text; b.setAttribute('aria-pressed','false');
+      if(disabled){ b.setAttribute('aria-disabled','true'); b.disabled=true; }
+      b.addEventListener('click',()=>{ selectSlot(b); });
+      return b;
+    }
+
+    function selectSlot(btn){
+      document.querySelectorAll('.slot').forEach(x=>x.setAttribute('aria-pressed','false'));
+      btn.setAttribute('aria-pressed','true');
+      selectedSlot = btn.textContent;
+      document.getElementById('s-time').textContent = selectedSlot;
+      updateSubmit();
+    }
+
+    function updateSubmit(){
+      const ok = !!(selectedDate && selectedSlot);
+      document.getElementById('submit').disabled = !ok;
+    }
+
+    // 提交
+    document.getElementById('submit').addEventListener('click',()=>{
+      const dlg=document.getElementById('ok');
+      dlg.showModal();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>智慧医院自助服务平台 · 全新样式</title>
+<style>
+  :root{
+    --bg: #0b1420;
+    --text: #e9f0ff;
+    --muted: #b9c7dd;
+    --shadow-1: 0 10px 30px rgba(0,0,0,.35);
+    --shadow-2: 0 20px 50px rgba(0,0,0,.55);
+    --radius-xl: 22px;
+    --radius-2xl: 28px;
+  }
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei";
+    color:var(--text);
+    background:linear-gradient(180deg, #08101b 0%, #0a1523 100%);
+  }
+  .container{max-width:1200px;margin:0 auto;padding:22px 18px 60px;}
+  .topbar{position:sticky;top:0;background:rgba(20,30,50,0.8);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;color:var(--text);}
+  .hero{margin-top:20px;padding:26px 22px;border-radius:var(--radius-2xl);background:rgba(255,255,255,.08);text-align:center;box-shadow:var(--shadow-2);}
+  .hero h1{margin:0;font-size:28px;color:var(--text);}
+  .hero p{color:var(--muted);margin:10px 0 0;}
+  .grid{margin-top:22px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  @media(max-width:1024px){.grid{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:720px){.grid{grid-template-columns:repeat(2,1fr);}}
+  .tile{
+    position:relative;
+    border-radius:var(--radius-xl);
+    min-height:150px;
+    background:#fff;
+    box-shadow:var(--shadow-1);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    color:#0b1420;
+    text-align:center;
+    transition:transform .25s, box-shadow .25s;
+  }
+  .tile:hover{transform:translateY(-6px) scale(1.02);box-shadow:0 16px 40px rgba(0,0,0,.45);}
+  .tile .icon{font-size:48px;line-height:1;margin-bottom:10px;}
+  .tile h3{font-size:20px;margin:0;}
+  .tile p{font-size:14px;margin:4px 0 0;}
+  .c1{background:linear-gradient(135deg,#fbd1d1,#ff9fbf);}
+  .c2{background:linear-gradient(135deg,#ffe6a7,#ffb703);}
+  .c3{background:linear-gradient(135deg,#b7f3d0,#34d399);}
+  .c4{background:linear-gradient(135deg,#cfd8ff,#8b9dff);}
+  .c5{background:linear-gradient(135deg,#ffd6a5,#ff7b00);}
+  .c6{background:linear-gradient(135deg,#b9e1ff,#38bdf8);}
+  .c7{background:linear-gradient(135deg,#e9d5ff,#c084fc);}
+  .c8{background:linear-gradient(135deg,#d1f7ff,#22d3ee);}
+  .c9{background:linear-gradient(135deg,#fce7f3,#f472b6);}
+  .c10{background:linear-gradient(135deg,#dcfce7,#22c55e);}
+  .c11{background:linear-gradient(135deg,#fde68a,#f59e0b);}
+  .c12{background:linear-gradient(135deg,#fee2e2,#ef4444);}
+  footer{text-align:center;margin-top:28px;color:var(--muted);font-size:12px;}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div>智慧医院自助服务平台</div>
+  <div id="clock">--:--:--</div>
+</header>
+<main class="container">
+  <section class="hero">
+    <h1>欢迎使用智慧医疗自助平台</h1>
+    <p>一站式完成预约挂号、线上咨询、电子处方、费用支付与病历查询</p>
+  </section>
+  <section class="grid">
+    <div class="tile c1"><div class="icon">🧑‍💼</div><h3>个人信息</h3><p>查看/编辑资料</p></div>
+    <div class="tile c2"><div class="icon">📝</div><h3>挂号服务</h3><p>快速预约挂号</p></div>
+    <div class="tile c3"><div class="icon">👨‍⚕️</div><h3>医生信息</h3><p>医生资质时间</p></div>
+    <div class="tile c4"><div class="icon">📄</div><h3>我的病历</h3><p>历史就诊记录</p></div>
+    <div class="tile c5"><div class="icon">⏰</div><h3>预约就诊</h3><p>选择就诊时间</p></div>
+    <div class="tile c6"><div class="icon">🧾</div><h3>查看医嘱</h3><p>查看建议</p></div>
+    <div class="tile c7"><div class="icon">💊</div><h3>电子处方</h3><p>在线查看处方</p></div>
+    <div class="tile c8"><div class="icon">💬</div><h3>医患沟通</h3><p>在线咨询</p></div>
+    <div class="tile c9"><div class="icon">❤️</div><h3>健康评估</h3><p>健康状态</p></div>
+    <div class="tile c10"><div class="icon">🔎</div><h3>药品搜索</h3><p>说明书查询</p></div>
+    <div class="tile c11"><div class="icon">💳</div><h3>线上支付</h3><p>费用支付</p></div>
+    <div class="tile c12"><div class="icon">🏥</div><h3>住院信息</h3><p>住院进度</p></div>
+  </section>
+  <footer>© 2025 智慧医院 · 让就医更简单</footer>
+</main>
+<script>
+function tick(){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  document.getElementById('clock').textContent=`${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+tick();setInterval(tick,1000);
+</script>
+</body>
+</html>

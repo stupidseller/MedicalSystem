@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>医患沟通 – 对话界面（亮色主题）</title>
+  <style>
+    :root{
+      --bg:#f7f8fb; --panel:#ffffff; --panel-2:#f9fafb; --line:#e5e7eb; --text:#111827; --muted:#6b7280;
+      --primary:#2563eb; --primary-600:#1d4ed8; --success:#059669; --warning:#d97706; --danger:#ef4444;
+      --shadow:0 10px 30px rgba(0,0,0,.07); --radius-xl:20px; --radius-lg:16px; --radius-md:12px;
+    }
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+    *{box-sizing:border-box}
+
+    .layout{height:100vh; display:grid; grid-template-columns: 280px 1fr 320px; gap:14px; padding:14px; max-width:1400px; margin:0 auto}
+    @media(max-width:1200px){.layout{grid-template-columns:240px 1fr;}}
+    @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+
+    /* 列表侧栏 */
+    .side{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-xl); box-shadow:var(--shadow); display:flex; flex-direction:column; min-height:0}
+    .side-head{display:flex; align-items:center; gap:10px; padding:14px; border-bottom:1px solid var(--line)}
+    .avatar{width:34px; height:34px; border-radius:12px; background:#e0ecff; display:grid; place-items:center; font-weight:800}
+    .side-search{padding:10px}
+    .input{height:42px; display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:0 12px}
+    .input input{border:0; outline:0; background:transparent; width:100%}
+    .convs{overflow:auto}
+    .conv{display:grid; grid-template-columns:auto 1fr auto; gap:10px; padding:12px 14px; border-top:1px solid var(--line); cursor:pointer}
+    .conv:hover{background:#f8fafc}
+    .conv .name{font-weight:800}
+    .conv .last{color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .badge{font-size:12px; padding:2px 6px; border-radius:999px; border:1px solid var(--line); background:#f1f5f9}
+    .online{color:#059669}
+
+    /* 中央聊天区 */
+    .chat{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-xl); box-shadow:var(--shadow); display:grid; grid-template-rows:auto 1fr auto}
+    .chat-head{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border-bottom:1px solid var(--line)}
+    .doc{display:flex; align-items:center; gap:10px}
+    .doc .avatar{background:#dcfce7}
+    .doc .meta{display:flex; flex-direction:column}
+    .doc .meta .nm{font-weight:900}
+    .doc .meta .sub{color:var(--muted); font-size:13px}
+    .chat-ops{display:flex; gap:8px}
+    .btn{height:36px; padding:0 12px; border:1px solid var(--line); background:#fff; border-radius:10px; cursor:pointer; font-weight:700}
+    .btn-primary{background:var(--primary); color:#fff; border-color:transparent}
+
+    .consent{display:flex; align-items:center; gap:10px; background:#fffbe6; border-top:1px solid #fde68a; border-bottom:1px solid #fde68a; padding:10px 16px}
+    .consent .muted{font-size:13px}
+
+    .messages{padding:16px; overflow:auto; display:flex; flex-direction:column; gap:10px; background:linear-gradient(#fff, #fff), linear-gradient(#fff,#fff), var(--panel);}
+    .day{position:relative; text-align:center; margin:8px 0}
+    .day span{background:#e5e7eb; color:#374151; font-size:12px; padding:3px 8px; border-radius:999px}
+
+    .msg{max-width:min(72%, 560px); display:grid; gap:4px}
+    .msg .bubble{padding:10px 12px; border-radius:14px; border:1px solid var(--line); background:#f9fafb}
+    .msg .time{color:var(--muted); font-size:12px}
+
+    .from-me{align-self:flex-end}
+    .from-me .bubble{background:#e8f0ff; border-color:#cfe0ff}
+    .from-me .meta{display:flex; justify-content:flex-end; gap:8px}
+
+    .from-doc .hdr{display:flex; align-items:center; gap:8px}
+    .from-doc .hdr .nm{font-weight:800; font-size:13px}
+
+    .attach{display:flex; gap:8px; flex-wrap:wrap}
+    .file{border:1px solid var(--line); background:var(--panel-2); border-radius:10px; padding:6px 8px; font-size:13px}
+
+    .typing{display:flex; align-items:center; gap:8px; color:#6b7280; font-size:13px}
+    .dot{width:6px; height:6px; background:#d1d5db; border-radius:999px; animation: blink 1s infinite}
+    .dot:nth-child(2){animation-delay:.2s}
+    .dot:nth-child(3){animation-delay:.4s}
+    @keyframes blink{0%,60%{opacity:.2} 30%{opacity:1}}
+
+    .chat-input{display:grid; grid-template-columns:auto 1fr auto; gap:10px; padding:12px; border-top:1px solid var(--line)}
+    .ibox{display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:0 10px}
+    .ibox input{height:42px; border:0; outline:0; background:transparent; width:100%}
+    .quick{display:flex; gap:8px; flex-wrap:wrap; padding:0 12px 12px}
+    .chip{padding:8px 10px; border:1px solid var(--line); border-radius:999px; background:#fff; cursor:pointer; font-weight:700; font-size:13px}
+
+    /* 右侧患者信息/笔记 */
+    .side-r{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-xl); box-shadow:var(--shadow); display:flex; flex-direction:column; min-height:0}
+    .side-r-head{padding:12px 14px; border-bottom:1px solid var(--line); font-weight:900}
+    .info{padding:12px; display:grid; gap:8px}
+    .kv{display:grid; grid-template-columns:100px 1fr; gap:6px}
+    .k{color:var(--muted)}
+    .note{margin:0 12px 12px; background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:10px}
+    .note textarea{width:100%; height:120px; border:0; outline:0; background:transparent; resize:vertical}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- 左侧：会话/医生列表 -->
+    <aside class="side">
+      <div class="side-head">
+        <div class="avatar">我</div>
+        <div>
+          <div style="font-weight:900">我的咨询</div>
+          <div class="muted" style="font-size:12px">共 3 个会话</div>
+        </div>
+      </div>
+      <div class="side-search"><label class="input"><input placeholder="搜索医生/会话…"></label></div>
+      <div class="convs">
+        <div class="conv" data-doc="张主任">
+          <div class="avatar">张</div>
+          <div>
+            <div class="name">张三 · 主任医师 <span class="badge online">在线</span></div>
+            <div class="last">好的，先按医嘱吃 3 天再复诊…</div>
+          </div>
+          <div class="muted" style="font-size:12px">14:26</div>
+        </div>
+        <div class="conv" data-doc="李医生">
+          <div class="avatar">李</div>
+          <div>
+            <div class="name">李四 · 副主任医师</div>
+            <div class="last">报告已回，指标基本正常。</div>
+          </div>
+          <div class="muted" style="font-size:12px">昨天</div>
+        </div>
+        <div class="conv" data-doc="王医生">
+          <div class="avatar">王</div>
+          <div>
+            <div class="name">王五 · 主治医师</div>
+            <div class="last">收到，注意休息。</div>
+          </div>
+          <div class="muted" style="font-size:12px">8/20</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 中间：聊天 -->
+    <section class="chat">
+      <div class="chat-head">
+        <div class="doc">
+          <div class="avatar">张</div>
+          <div class="meta">
+            <div class="nm">张三 · 主任医师（心内科）</div>
+            <div class="sub">在线 · 预计回复 &lt; 5 分钟 · 执业证书可查</div>
+          </div>
+        </div>
+        <div class="chat-ops">
+          <button class="btn">发送报告</button>
+          <button class="btn">发起语音</button>
+          <button class="btn btn-primary">视频问诊</button>
+        </div>
+      </div>
+
+      <div class="consent">
+        <div>📜</div>
+        <div class="muted">温馨提示：线上沟通不能替代面诊；紧急情况请拨打 120 或前往急诊。发送消息代表您同意《在线问诊知情同意》。</div>
+      </div>
+
+      <div id="messages" class="messages">
+        <div class="day"><span>今天</span></div>
+
+        <div class="msg from-doc">
+          <div class="hdr"><div class="avatar" style="width:24px;height:24px;border-radius:8px">张</div><div class="nm">张三</div></div>
+          <div class="bubble">您好，我是张三医生，请简单描述一下目前不适和持续时间。</div>
+          <div class="time">14:22 · 已读</div>
+        </div>
+
+        <div class="msg from-me">
+          <div class="bubble">医生好，我这两天胸口有点闷，走快了会更明显，昨晚血压 150/95。</div>
+          <div class="attach"><div class="file">血压记录-近一周.csv</div></div>
+          <div class="meta time">14:24 · 已送达</div>
+        </div>
+
+        <div class="msg from-doc">
+          <div class="bubble">收到。请问是否伴随出汗、恶心或左臂放射痛？发作时长大概多久？</div>
+          <div class="time">14:25 · 已读</div>
+        </div>
+      </div>
+
+      <div id="typing" class="typing" style="display:none; padding:0 16px 8px">
+        <div class="avatar" style="width:22px;height:22px;border-radius:8px">张</div>
+        <div style="display:flex; gap:4px"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <div>医生正在输入…</div>
+      </div>
+
+      <div class="quick">
+        <button class="chip">用药是否需要调整？</button>
+        <button class="chip">上传近三天的血压记录</button>
+        <button class="chip">能否开具复诊单？</button>
+        <button class="chip">需要做哪些检查？</button>
+      </div>
+
+      <div class="chat-input">
+        <button id="btnFile" class="btn" title="上传图片或文件">📎</button>
+        <label class="ibox" style="grid-column: 2 / 3"><input id="ibox" placeholder="输入要发送的消息…（回车发送）"></label>
+        <button id="send" class="btn btn-primary">发送</button>
+      </div>
+    </section>
+
+    <!-- 右侧：患者摘要/快捷操作（可选） -->
+    <aside class="side-r" style="display:block">
+      <div class="side-r-head">就诊摘要</div>
+      <div class="info">
+        <div class="kv"><div class="k">科室</div><div>心内科</div></div>
+        <div class="kv"><div class="k">最近诊断</div><div>高血压 2 级</div></div>
+        <div class="kv"><div class="k">当前用药</div><div>缬沙坦 80mg qd</div></div>
+        <div class="kv"><div class="k">过敏史</div><div>青霉素</div></div>
+      </div>
+      <div class="side-r-head">我的备忘</div>
+      <div class="note"><textarea placeholder="给自己记点就诊要点（仅自己可见）…"></textarea></div>
+    </aside>
+  </div>
+
+  <script>
+    const input = document.getElementById('ibox');
+    const sendBtn = document.getElementById('send');
+    const msgs = document.getElementById('messages');
+    const typing = document.getElementById('typing');
+
+    function addMyMsg(text){
+      if(!text.trim()) return;
+      const wrap=document.createElement('div'); wrap.className='msg from-me';
+      const b=document.createElement('div'); b.className='bubble'; b.textContent=text; wrap.appendChild(b);
+      const t=document.createElement('div'); t.className='meta time'; t.textContent=timeNow()+ ' · 已送达'; wrap.appendChild(t);
+      msgs.appendChild(wrap); scrollBottom();
+      simulateDoctorReply(text);
+    }
+
+    function timeNow(){ const d=new Date(); const p=n=>n.toString().padStart(2,'0'); return `${p(d.getHours())}:${p(d.getMinutes())}`; }
+    function scrollBottom(){ msgs.scrollTop = msgs.scrollHeight; }
+
+    input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); addMyMsg(input.value); input.value=''; } });
+    sendBtn.addEventListener('click',()=>{ addMyMsg(input.value); input.value=''; });
+
+    document.querySelectorAll('.chip').forEach(c=> c.addEventListener('click',()=>{ addMyMsg(c.textContent); }));
+
+    // 模拟医生回复（示例）
+    function simulateDoctorReply(text){
+      typing.style.display='flex';
+      setTimeout(()=>{
+        typing.style.display='none';
+        const w=document.createElement('div'); w.className='msg from-doc';
+        const b=document.createElement('div'); b.className='bubble';
+        b.textContent = suggest(text);
+        const t=document.createElement('div'); t.className='time'; t.textContent=timeNow()+' · 已读';
+        w.appendChild(b); w.appendChild(t); msgs.appendChild(w); scrollBottom();
+      }, 1000 + Math.random()*800);
+    }
+
+    function suggest(txt){
+      txt=txt.toLowerCase();
+      if(txt.includes('血压')||txt.includes('用药')) return '建议先持续记录 3 天的晨起与睡前血压，若平均值仍≥140/90，可考虑调整用药剂量。期间注意低盐饮食与规律运动。';
+      if(txt.includes('检查')) return '结合症状，建议先做心电图与心肌酶，必要时行动态心电图；如胸闷加重请及时急诊。';
+      if(txt.includes('复诊')) return '可以，为你开具 1 周内的复诊单。若不适加重可提前就诊。';
+      return '已了解，请补充症状的出现时间、持续时长和诱发缓解因素，并上传近 3 天血压记录。';
+    }
+
+    // 文件按钮（示例）
+    document.getElementById('btnFile').addEventListener('click',()=>{
+      const w=document.createElement('div'); w.className='msg from-me';
+      const b=document.createElement('div'); b.className='bubble'; b.textContent='已上传：体检报告.pdf';
+      const a=document.createElement('div'); a.className='attach'; const f=document.createElement('div'); f.className='file'; f.textContent='体检报告.pdf'; a.appendChild(f);
+      const t=document.createElement('div'); t.className='meta time'; t.textContent=timeNow()+' · 已送达';
+      w.appendChild(b); w.appendChild(a); w.appendChild(t); msgs.appendChild(w); scrollBottom();
+      simulateDoctorReply('报告');
+    });
+  </script>
+</body>
+</html>
