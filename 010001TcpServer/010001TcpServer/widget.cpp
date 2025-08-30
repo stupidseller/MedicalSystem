@@ -7,6 +7,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QIntValidator>
+#include <QSqlRecord>
 #include <QJsonObject>
 #include <QMap>
 #include <QJsonParseError>
@@ -225,11 +226,11 @@ void Widget::handleMessage(QTcpSocket *sock, const QJsonObject &obj)
 
 void Widget::handleLogin(QTcpSocket *sock, const QJsonObject &obj)
 {
-    const QString userOrEmail = obj.value("username").toString().trimmed();
+    const QString userOrEmailOrPhone = obj.value("username").toString().trimmed();
     const QString password    = obj.value("password").toString();
     const QString role        = obj.value("role").toString().trimmed(); // 'patient'/'doctor'
 
-    if (userOrEmail.isEmpty() || password.isEmpty() || role.isEmpty()) {
+    if (userOrEmailOrPhone.isEmpty() || password.isEmpty() || role.isEmpty()) {
         sendJson(sock, QJsonObject{
             {"type","login_result"},
             {"success",false},
@@ -241,128 +242,101 @@ void Widget::handleLogin(QTcpSocket *sock, const QJsonObject &obj)
     // 用默认连接查询
     QSqlQuery q;
     q.prepare(R"SQL(
-        SELECT user_id, user_type
-        FROM users
-        WHERE (username = :id OR email = :id)
-          AND password   = :pwd
-          AND user_type  = :role
-        LIMIT 1
-    )SQL");
-    q.bindValue(":id",   userOrEmail);
-    q.bindValue(":pwd",  password);
-    q.bindValue(":role", role);
+            SELECT user_id, user_type, name
+            FROM users
+            WHERE (name = :id OR email = :id OR phone = :id)
+              AND password = :pwd
+              AND user_type = :role
+            LIMIT 1
+        )SQL");
+        q.bindValue(":id",   userOrEmailOrPhone);
+        q.bindValue(":pwd",  password);
+        q.bindValue(":role", role);
 
-    if (!q.exec()) {
-        qDebug() << "login query error:" << q.lastError().text();
-        sendJson(sock, QJsonObject{
-            {"type","login_result"},
-            {"success",false},
-            {"message","数据库错误"}
-        });
-        return;
-    }
+        if (!q.exec()) {
+                qWarning() << "[login] SQL error:" << q.lastError().text();
+                sendJson(sock, QJsonObject{{"type","login_result"},{"success",false},{"message","数据库错误"}});
+                return;
+            }
 
-    if (q.next()) {
-        const int userId = q.value(0).toInt();
-        const QString userType = q.value(1).toString();
-        sendJson(sock, QJsonObject{
-            {"type","login_result"},
-            {"success",true},
-            {"message","登录成功"},
-            {"user_id", userId},
-            {"user_type", userType}
-        });
-    } else {
-        sendJson(sock, QJsonObject{
-            {"type","login_result"},
-            {"success",false},
-            {"message","用户名/邮箱、密码或身份不匹配"}
-        });
-    }
-}
+        if (q.next()) {
+                const int userId       = q.value("user_id").toInt();
+                const QString userType = q.value("user_type").toString();
+                const QString name     = q.value("name").toString();
+                sendJson(sock, QJsonObject{
+                    {"type","login_result"},
+                    {"success",true},
+                    {"message","登录成功"},
+                    {"user_id",userId},
+                    {"user_type",userType},
+                    {"name",name}
+                });
+            } else {
+                sendJson(sock, QJsonObject{{"type","login_result"},{"success",false},{"message","用户名/邮箱/手机或密码/身份不匹配"}});
+            }
+        }
+
 void Widget::handleRegister(QTcpSocket *sock, const QJsonObject &obj)
 {
-    const QString username   = obj.value("username").toString().trimmed();
-    const QString email      = obj.value("email").toString().trimmed();
-    const QString password   = obj.value("password").toString();
-    const QString userType   = obj.value("user_type").toString().trimmed(); // 'patient'/'doctor'
-    const QString department = obj.value("department").toString().trimmed();
+    const QString name      = obj.value("username").toString().trimmed(); // 前端叫 username，这里映射到 name
+    const QString email     = obj.value("email").toString().trimmed();
+    const QString password  = obj.value("password").toString();
+    const QString userType  = obj.value("user_type").toString().trimmed(); // 'patient'/'doctor'
+    // const QString department = obj.value("department").toString().trimmed(); // 表里没有，忽略
 
-    if (username.isEmpty() || email.isEmpty() || password.isEmpty() || userType.isEmpty()) {
-        sendJson(sock, QJsonObject{
-            {"type","register_result"},
-            {"success",false},
-            {"message","参数不完整"}
-        });
+    if (name.isEmpty() || password.isEmpty() || userType.isEmpty()) {
+        sendJson(sock, QJsonObject{{"type","register_result"},{"success",false},{"message","参数不完整"}});
         return;
     }
-    if (userType == "doctor" && department.isEmpty()) {
-        sendJson(sock, QJsonObject{
-            {"type","register_result"},
-            {"success",false},
-            {"message","医生必须选择科室"}
-        });
+    if (!email.isEmpty() && !email.contains('@')) {
+        sendJson(sock, QJsonObject{{"type","register_result"},{"success",false},{"message","邮箱格式不正确"}});
+        return;
+    }
+    if (userType != "patient" && userType != "doctor") {
+        sendJson(sock, QJsonObject{{"type","register_result"},{"success",false},{"message","用户类型非法"}});
         return;
     }
 
-    // 先查重
-    {
+    // 先查重（email 唯一，name 非唯一，这里可选校验 email）
+    if (!email.isEmpty()) {
         QSqlQuery check;
-        check.prepare(R"SQL(
-            SELECT 1 FROM users WHERE username=:u OR email=:e LIMIT 1
-        )SQL");
-        check.bindValue(":u", username);
+        check.prepare("SELECT 1 FROM users WHERE email = :e LIMIT 1");
         check.bindValue(":e", email);
         if (!check.exec()) {
-            qDebug() << "check exist error:" << check.lastError().text();
-            sendJson(sock, QJsonObject{
-                {"type","register_result"},
-                {"success",false},
-                {"message","数据库错误"}
-            });
+            qWarning() << "[register] check email error:" << check.lastError().text();
+            sendJson(sock, QJsonObject{{"type","register_result"},{"success",false},{"message","数据库错误"}});
             return;
         }
         if (check.next()) {
-            sendJson(sock, QJsonObject{
-                {"type","register_result"},
-                {"success",false},
-                {"message","用户名或邮箱已存在"}
-            });
+            sendJson(sock, QJsonObject{{"type","register_result"},{"success",false},{"message","该邮箱已被注册"}});
             return;
         }
     }
 
-    // 插入
+    // 插入（性别/生日/手机号/证件号可为空；created_at/updated_at 有默认值）
     QSqlQuery ins;
     ins.prepare(R"SQL(
-        INSERT INTO users(username, email, password, user_type, department)
-        VALUES(:u, :e, :p, :t, :d)
+        INSERT INTO users(user_type, name, email, password)
+        VALUES(:t, :n, :e, :p)
     )SQL");
-    ins.bindValue(":u", username);
-    ins.bindValue(":e", email);
-    ins.bindValue(":p", password);     // 生产建议改为哈希
     ins.bindValue(":t", userType);
-    if (userType == "doctor")
-        ins.bindValue(":d", department);
+    ins.bindValue(":n", name);
+    if (email.isEmpty())
+        ins.bindValue(":e", QVariant(QVariant::String)); // NULL
     else
-        ins.bindValue(":d", QVariant(QVariant::String)); // NULL
+        ins.bindValue(":e", email);
+    ins.bindValue(":p", password); // 先明文，后续可替换为哈希
 
     if (!ins.exec()) {
-        qDebug() << "insert error:" << ins.lastError().text();
-        sendJson(sock, QJsonObject{
-            {"type","register_result"},
-            {"success",false},
-            {"message","插入失败（数据库错误）"}
-        });
+        qWarning() << "[register] insert error:" << ins.lastError().text();
+        sendJson(sock, QJsonObject{{"type","register_result"},{"success",false},{"message","插入失败（数据库错误）"}});
         return;
     }
 
-    sendJson(sock, QJsonObject{
-        {"type","register_result"},
-        {"success",true},
-        {"message","注册成功"}
-    });
+    sendJson(sock, QJsonObject{{"type","register_result"},{"success",true},{"message","注册成功"}});
 }
+
+
 void Widget::sendJson(QTcpSocket *sock, const QJsonObject &obj)
 {
     QJsonDocument doc(obj);

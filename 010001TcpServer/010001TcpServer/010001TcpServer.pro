@@ -27,6 +27,7 @@ FORMS += \
 
 TRANSLATIONS += \
     010001TcpServer_zh_CN.ts
+QT_LOGGING_RULES=*.debug=true;qt.sql.debug=true
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

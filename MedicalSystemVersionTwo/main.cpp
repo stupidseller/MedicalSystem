@@ -17,18 +17,20 @@ int main(int argc, char *argv[])
     // 2) 创建登录对话框
     LoginDialog loginDialog;
 
-    // 3)  UI → TCP 连接信号 → 槽（这一步就是让 emit “调用东西”）
+    // 3)  UI → TCP | 连接信号 → 槽（这一步就是让 emit “调用东西”）
     QObject::connect(&loginDialog, &LoginDialog::loginRequested,
                          &tcp,        &Widget::sendLoginData);
     QObject::connect(&loginDialog, &LoginDialog::registerRequested,
                          &tcp,        &Widget::sendRegisterData);
 
     // TCP → UI（占位处理：弹框 + 可选 accept()）
-    QObject::connect(&tcp, &Widget::registerFailed, &loginDialog,
-                     [&](const QString &msg){
-                         QMessageBox::warning(&loginDialog, "注册失败",
-                                               msg.isEmpty() ? "请检查注册信息" : msg);
-                     });
+    QObject::connect(&tcp, &Widget::loginSucceeded, &loginDialog,
+                         [&](const QString &msg){
+                             QMessageBox::information(&loginDialog, "登录成功",
+                                                      msg.isEmpty() ? "欢迎回来！" : msg);
+                             // 预留：成功后关闭登录框 → main里 exec() 返回 Accepted
+                             loginDialog.accept();
+                         });
 
     QObject::connect(&tcp, &Widget::loginFailed, &loginDialog,
                      [&](const QString &msg){
@@ -51,17 +53,9 @@ int main(int argc, char *argv[])
                      });
 
 
-    // 用模态，便于“成功后 accept → 再开主窗”
     if (loginDialog.exec() == QDialog::Accepted) {
-        // === 将来切换主页面就在这里 ===
-        // MainWindow w;
-        // w.show();
-        // return a.exec();
-
-        // 现在先给个占位提示，不起主窗
-        QMessageBox::information(nullptr, "占位提示",
-                                 "（预留）这里将切换到主页面。");
-        return 0; // 没有主窗，就正常退出
+            QMessageBox::information(nullptr, "占位提示", "（预留）这里将切换到主页面。");
+            return 0;
     }
 
     // 用户取消/关闭登录框，则退出程序

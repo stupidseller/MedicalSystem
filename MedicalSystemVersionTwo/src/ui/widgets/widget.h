@@ -47,7 +47,7 @@ private:
     bool connectStatus = false;
 
     // 你可以改成配置读取
-    QString serverIp   = "123.123.123.123";
+    QString serverIp   = "192.168.253.136";
     quint16 serverPort = 9999;
 };
 #endif // WIDGET_H
