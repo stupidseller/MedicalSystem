@@ -1,0 +1,23 @@
+# ninja log v6
+226	1132	7780957424100474	CMakeFiles/SmartHealthLogin.dir/src/main.cpp.obj	869e3eff4f777374
+227	1333	7780957424110501	CMakeFiles/SmartHealthLogin.dir/src/LoginWindow.cpp.obj	422f841559a980da
+4	225	7780957423809458	SmartHealthLogin_autogen/timestamp	a19414df5ce952e0
+4	225	7780957423809458	C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/SmartHealthLogin_autogen/mocs_compilation.cpp	a19414df5ce952e0
+4	225	7780957423809458	SmartHealthLogin_autogen/mocs_compilation.cpp	a19414df5ce952e0
+4	225	7780957423809458	C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/SmartHealthLogin_autogen/timestamp	a19414df5ce952e0
+225	1043	7780957424100474	CMakeFiles/SmartHealthLogin.dir/SmartHealthLogin_autogen/mocs_compilation.cpp.obj	1dacefb9b69766a9
+1333	1438	7780957435171275	bin/SmartHealthLogin.exe	dae075b5142e3d07
+5	72	7780961936247917	SmartHealthLogin_autogen/timestamp	a19414df5ce952e0
+5	72	7780961936247917	SmartHealthLogin_autogen/mocs_compilation.cpp	a19414df5ce952e0
+5	72	7780961936247917	C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/SmartHealthLogin_autogen/timestamp	a19414df5ce952e0
+5	72	7780961936247917	C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/SmartHealthLogin_autogen/mocs_compilation.cpp	a19414df5ce952e0
+72	84	7780961936518856	qrc_qml.cpp	36c97dc1a61c4f4e
+72	84	7780961936518856	C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/qrc_qml.cpp	36c97dc1a61c4f4e
+84	109	7780961936538927	CMakeFiles/SmartHealthLogin.dir/SmartHealthLogin_autogen/mocs_compilation.cpp.obj	d7f9433c9c334386
+86	115	7780961936548958	CMakeFiles/SmartHealthLogin.dir/qrc_qml.cpp.obj	6195ef759cae1089
+85	854	7780961936548958	CMakeFiles/SmartHealthLogin.dir/src/main.cpp.obj	ea6d58cc58ecb3f
+854	927	7780961944233643	bin/SmartHealthLogin.exe	b74ce6fcdf9f47f6
+5	18	7780963238261855	qrc_qml.cpp	36c97dc1a61c4f4e
+5	18	7780963238261855	C:/Users/Administrator/Desktop/cursor2/build/Desktop_Qt_5_15_2_MinGW_64_bit-Debug/qrc_qml.cpp	36c97dc1a61c4f4e
+18	48	7780963238281916	CMakeFiles/SmartHealthLogin.dir/qrc_qml.cpp.obj	6195ef759cae1089
+48	120	7780963238582955	bin/SmartHealthLogin.exe	b74ce6fcdf9f47f6
