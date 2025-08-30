@@ -140,7 +140,13 @@ void Widget::slotReadyRead()
         const QString msg = obj.value("message").toString();
 
         if (type == "login_result") {
-            if (ok) emit loginSucceeded(msg.isEmpty() ? "登录成功" : msg);
+            if (ok) {
+                const int userId       = obj.value("user_id").toInt();
+                const QString name     = obj.value("name").toString();
+                const QString userType = obj.value("user_type").toString();
+                emit loginSucceeded(msg.isEmpty() ? "登录成功" : msg);
+                emit loginSucceededDetail(userId, name, userType);
+              }
             else    emit loginFailed   (msg.isEmpty() ? "用户名或密码错误" : msg);
         } else if (type == "register_result") {
             if (ok) emit registerSucceeded(msg.isEmpty() ? "注册成功" : msg);

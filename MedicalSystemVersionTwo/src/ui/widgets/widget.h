@@ -16,6 +16,9 @@ signals:
     void loginSucceeded(const QString &message);
     void loginFailed(const QString &message);
 
+    // 新增：携带登录后的关键信息，供主界面使用
+    void loginSucceededDetail(int userId, const QString &name, const QString &userType);
+
     // 注册结果
     void registerSucceeded(const QString &message);
     void registerFailed(const QString &message);
