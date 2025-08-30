@@ -1,0 +1,81 @@
+# 构建目录（匹配项目明确的build目录及通用构建目录）
+build/
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+[Ll]ib/
+
+# Qt 相关（补充生成文件）
+*.user
+*.user.*
+*.autosave
+moc_*.cpp        # Qt元对象编译文件
+ui_*.h           # UI界面转换文件
+qrc_*.cpp        # 资源文件转换文件
+Makefile*        # Qt生成的Makefile
+*.qmake.stash    # Qt qmake缓存
+.ui.autosave     # UI自动保存文件
+*.mo             # 翻译二进制文件
+*.qm             # 翻译文件
+*.moc            # moc生成的头文件
+
+# 编译产物
+*.o
+*.a
+*.so
+*.so.*
+*.exe            # 仅保留必要的跨平台规则（若纯Linux开发可删除）
+*.out
+*.obj            # 同上（Windows相关，可选保留）
+
+# 项目特定可执行文件
+smart_medical
+tst_user_dao
+
+# CMake 相关
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+CTestTestfile.cmake
+*.cmake
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# 数据库文件（SQLite）
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# 第三方依赖构建产物
+third_party/*/build/
+third_party/*/bin/
+third_party/*/lib/
+third_party/*/obj/
+
+# 测试目录临时文件
+src/tests/*.log
+src/tests/*.tmp
+src/tests/*_test
+
+# 文档生成目录（若使用doxygen等工具）
+docs/build/
+docs/html/
+docs/man/
+
+# IDE/编辑器文件
+.vscode/
+.idea/
+*.swp            # vim临时文件
+*.swo            # vim临时文件
+*~               # 编辑器备份文件
+
+# 系统文件（跨平台兼容）
+.DS_Store        # Mac
+Thumbs.db        # Windows
+
+# 日志与临时文件
+*.log
+*.tmp
+*.bak
